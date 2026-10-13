@@ -304,7 +304,7 @@ tr.c[hidden]{display:none}
 .ppl-head h3{margin:0;font-size:14px}
 .ppl-head h3 span{font-weight:400;font-size:12px;color:var(--muted);margin-left:6px}
 .pg-scroll{overflow-x:auto}
-.pg{display:grid;grid-template-columns:132px repeat(14,minmax(52px,1fr));min-width:860px;font-size:12px;row-gap:3px}
+.pg{display:grid;grid-template-columns:132px repeat(15,minmax(50px,1fr));min-width:880px;font-size:12px;row-gap:3px}
 .pg .dh{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-align:center;padding:4px 0 6px;border-bottom:1px solid var(--line)}
 .pg .dh.we{color:var(--faint);background:var(--sunk)}
 .pg .dh.ev{color:var(--cv);font-weight:600}
@@ -460,13 +460,13 @@ tr.p.st-late td{box-shadow:inset 0 0 0 9999px rgba(178,58,46,.04)}
   </section>
 
   <section class="ppl" aria-labelledby="ppl-h">
-    <h2 id="ppl-h">11월 MY · PH 세미나 일정 · 인원 <span class="draft">초안 · 일부 진행 안 될 수 있고 일정 변동 가능</span></h2>
+    <h2 id="ppl-h">11월 TH · MY · PH 세미나 일정 · 인원 <span class="draft">초안 · 일부 진행 안 될 수 있고 일정 변동 가능</span></h2>
     <div class="evt-wrap"><table class="evt">
       <thead><tr><th>일정</th><th>지역</th><th>행사</th><th>주요 참석 인원</th></tr></thead>
       <tbody id="evt-body"></tbody>
     </table></div>
     <div class="ppl-head">
-      <h3>인원별 일정 <span id="pg-sub">11/14 ~ 11/27</span></h3>
+      <h3>인원별 일정 <span id="pg-sub">11/13 ~ 11/27</span></h3>
     </div>
     <div class="pg-scroll"><div class="pg" id="pg"></div></div>
     <div class="pg-legend">
@@ -543,7 +543,7 @@ let STEPS=[
 { id:"s1", title:"초안", from:-29, to:-22, lab:"4주 전", decide:[]},
 { id:"s2", title:"자료 받기 · 완성", from:-21, to:-7, lab:"3~2주 전",
   decide:[]},
-{ id:"s3", title:"리허설", from:-6, to:-2, lab:"1주 전",
+{ id:"s3", title:"리허설 · 태국 MBM (11/14)", from:-6, to:-2, lab:"1주 전",
   decide:[]},
 { id:"s4", title:"행사 전날 · 현장 세팅", from:-1, to:-1, lab:"D-1",
   decide:[]},
@@ -587,6 +587,13 @@ let TASKS=[
 {id:"p8",k:"nx",role:"fb",t:"시연 환경 확보",o:"준비 현지 영업 · 확인 본인",st:-19,d:-7,ty:"E",dep:["p2"],s:[
   {t:"시연용 빌드 · 라이선스가 들어왔는지",ty:"S"},
   {t:"해외 라이선스 인증 테스트 결과 확인",ty:"X",x:"반드시 사전 테스트"}]},
+{id:"t1",k:"nx",t:"태국판 준비 (같은 덱)",o:"본인",st:-9,d:-7,ty:"R",dep:["p7"],s:[
+  {t:"태국 현지 요청 반영 (설계기준 표현 · 연락처 · 아젠다 시간)",ty:"R"},
+  {t:"태국 시연 환경 확인 (빌드 · 라이선스 · 해외 인증)",ty:"E"}]},
+{id:"t2",k:"nx",t:"태국 시연 PC 현장 테스트",o:"본인",abs:"2026-11-13",st:-4,d:-4,ty:"S",dep:["t1"],s:[
+  {t:"프로젝터 · 영상 소리 · 인터넷 · 라이선스 인증",ty:"S"}]},
+{id:"t3",k:"nx",t:"태국 MBM 메인 발표",o:"본인",abs:"2026-11-14",st:-3,d:-3,ty:"S",dep:["t2"],s:[
+  {t:"같은 덱으로 발표 · 현장 질문 기록 (말레이시아 발표 전 보완점 메모)",ty:"S"}]},
 {id:"m4",k:"nx",t:"메인 발표 리허설",o:"본인",st:-6,d:-5,ty:"R",dep:["p7","p8"],s:[
   {t:"처음부터 끝까지 시간 측정",ty:"R"},
   {t:"까다로운 질문 대비 롤플레이",ty:"R"},
@@ -609,8 +616,8 @@ const PROC_PH_TASKS=[{"id": "a1", "k": "nx", "t": "MBM 컨셉 · 주제 확정 (
 
 const DATA={
   "규완":{d:"2026-11-17",start:"2026-10-13",steps:GW_STEPS,tasks:GW_TASKS,lbl:"교량 세미나 D-day",
-    h2:'규완 준비 <span>메인 발표자료</span>',
-    lede:'11/17 말레이시아 Civil NX 교량 세미나의 <b>메인 발표 하나</b>만 준비합니다. 흐름은 <b>왜 CIVIL NX with Hyper-S</b> → <b>이번 릴리스 신규 기능</b> → <b>NX Bridge 소개</b> → 마무리. 아래는 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일과 정할 것입니다.'},
+    h2:'규완 준비 <span>메인 발표자료 · 태국 11/14 · 말레이시아 11/17</span>',
+    lede:'같은 <b>메인 발표 하나</b>로 <b>11/14(토) 태국 MBM</b>과 <b>11/17(화) 말레이시아 Civil NX 교량 세미나</b>에서 발표합니다. 일정은 말레이시아(D) 기준이고, 태국 발표는 그 3일 전에 들어갑니다. 흐름은 <b>왜 CIVIL NX with Hyper-S</b> → <b>이번 릴리스 신규 기능</b> → <b>NX Bridge 소개</b> → 마무리. 아래는 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일과 정할 것입니다.'},
   "MY":{d:"2026-11-17",start:"2026-10-13",steps:PROC_MY_STEPS,tasks:PROC_MY_TASKS,lbl:"교량 세미나 D-day",
     h2:'🇲🇾 말레이시아 준비 <span>Civil NX 교량 세미나 · 11/17 · 주도 승완</span>',
     lede:'「오프라인 MBM 운영 프로세스 v3」대로 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일입니다. 행사 후 팔로우업은 넣지 않았습니다.'},
@@ -667,6 +674,7 @@ function schedule(){
     (x.dep||[]).forEach(id=>{const p=SCHED[id]; if(p){const pe=p.done&&p.done>p.b?p.done:p.b; const e=(pe<D&&x.st>=0)?new Date(D):nb(pe); if(x.st===0&&+pe<+D) return; if(a<e) a=e;}});
     let shift=0; const own=((typeof STATUS!=="undefined"&&STATUS[DSNAME])||{})[x.id]||{};
     if(+a>+a0 && (x.dep||[]).some(id=>SCHED[id]&&((SCHED[id].done&&SCHED[id].done>SCHED[id].b)||SCHED[id].shift))){ shift=Math.round((a-a0)/864e5); const nbEnd=fwd(add(a,dur)); if(b<nbEnd) b=x.d===0?b:nbEnd; }
+    if(x.abs){a=parse(x.abs);b=parse(x.abs);shift=0;}
     let late=false; if(b<a){ b=a; late=true; }
     SCHED[x.id]={a,b,late,shift,done:own.done?parse(own.done):null,over: x.d<0 && b>=D};
   };
@@ -865,8 +873,8 @@ const NOTE={all:"모든 행사 · 인원 일정 · 할 일을 봅니다.",
   "규완":"규완의 일정 · 참석 행사 · 할 일, 그리고 메인 발표자료 준비를 봅니다.",
   "MY":"말레이시아 세미나(11/17 교량 · 주도 승완) 준비와 관련 인원 일정 · 할 일을 봅니다.",
   "PH":"필리핀 세미나(세부 · 다바오 · 주도 민영) 준비와 관련 인원 일정 · 할 일을 봅니다."};
-const D0=14, D1=27, WD="일월화수목금토";
-const evDays=new Set([17,23,24,26]);
+const D0=13, D1=27, WD="일월화수목금토";
+const evDays=new Set([14,17,23,24,26]);
 let WHO="all";
 try{const w=localStorage.getItem("mbm-who"); if(w&&NOTE[w]) WHO=w;}catch(e){}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -895,7 +903,7 @@ function applyWho(){
   if(DATA[WHO]&&DSNAME!==WHO) useDataset(WHO);
   document.querySelectorAll("#who button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.w===WHO)));
   $("who-note").textContent=NOTE[WHO];
-  $("pg-sub").textContent="11/14 ~ 11/27"+(WHO==="all"?" · 전체 인원":" · "+LABEL[WHO]);
+  $("pg-sub").textContent="11/13 ~ 11/27"+(WHO==="all"?" · 전체 인원":" · "+LABEL[WHO]);
   $("todo-title").textContent=WHO==="all"?"할 일 · 메모 (전체)":`할 일 · 메모 · ${LABEL[WHO]}`;
   if(WHO!=="all") void 0;
   renderEvents(); renderGrid(); renderTodos(); renderPV();
