@@ -355,6 +355,29 @@ tr.c[hidden]{display:none}
 .news b{font-family:var(--f-mono);font-size:12px;color:var(--accent);margin-right:8px}
 .ti .ck{width:16px;height:16px;border:1.5px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent)}
 .ti.done .ck{background:var(--accent-soft);border-color:var(--accent)}
+
+.sc{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:0 6px;margin-left:6px;line-height:18px;vertical-align:1px;background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
+.sc.done{background:#E4F3EC;color:#1F7A55;border-color:#BFE3D2}
+.sc.late{background:#FCE6E3;color:#B23A2E;border-color:#F2C2BB}
+.sc.doing{background:var(--accent-soft);color:var(--accent);border-color:#BFDCDF}
+.sc.risk{background:var(--warn-soft);color:var(--warn);border-color:#F0C9A8}
+.sc.note{font-weight:400}
+tr.p.st-done .t{color:var(--muted)}
+tr.p.st-late td{box-shadow:inset 0 0 0 9999px rgba(178,58,46,.04)}
+.chip.c-done{color:#1F7A55;border-color:#BFE3D2;background:#E4F3EC}
+.chip.c-late{color:#B23A2E;border-color:#F2C2BB;background:#FCE6E3;font-weight:600}
+.bar.b-done{opacity:.55}
+.bar.b-late{outline:1.5px solid #B23A2E;outline-offset:-1.5px}
+.prog{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.pg-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pg-sum b{font-size:13.5px;margin-right:4px}
+.pg-sum .sc{margin-left:0}
+.pbar{flex:1 1 140px;max-width:260px;height:8px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-left:8px}
+.pbar i{display:block;height:100%;background:#1F7A55}
+.pct{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.pg-list{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.pg-list b{font-size:12px;margin-right:4px}
+.pg-list.late b{color:#B23A2E} .pg-list.early b{color:#1F7A55}
 .todo-empty{font-size:13px;color:var(--faint);padding:4px 2px}
 
 .pv{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
@@ -498,6 +521,7 @@ tr.c[hidden]{display:none}
   </section>
 
 
+  <div class="prog plan-only" id="prog"></div>
   <div class="tl plan-only" id="tl"></div>
   <div class="cal plan-only" id="cal" hidden></div>
 
@@ -638,9 +662,12 @@ function schedule(){
     let a = raw(x.st)?add(D,x.st): fwd(add(D,x.st));
     let b = raw(x.d)?add(D,x.d): back(add(D,x.d));
     const floor=fwd(PLAN_START); if(a<floor) a=floor; if(x.abs){a=parse(x.abs);b=parse(x.abs);}
-    (x.dep||[]).forEach(id=>{const p=SCHED[id]; if(p){const e=(p.b<D&&x.st>=0)?new Date(D):nb(p.b); if(x.st===0&&+p.b<+D) return; if(a<e) a=e;}});
+    const a0=new Date(a), dur=Math.max(0,Math.round((b-a)/864e5));
+    (x.dep||[]).forEach(id=>{const p=SCHED[id]; if(p){const pe=p.done&&p.done>p.b?p.done:p.b; const e=(pe<D&&x.st>=0)?new Date(D):nb(pe); if(x.st===0&&+pe<+D) return; if(a<e) a=e;}});
+    let shift=0; const own=((typeof STATUS!=="undefined"&&STATUS[DSNAME])||{})[x.id]||{};
+    if(+a>+a0 && (x.dep||[]).some(id=>SCHED[id]&&((SCHED[id].done&&SCHED[id].done>SCHED[id].b)||SCHED[id].shift))){ shift=Math.round((a-a0)/864e5); const nbEnd=fwd(add(a,dur)); if(b<nbEnd) b=x.d===0?b:nbEnd; }
     let late=false; if(b<a){ b=a; late=true; }
-    SCHED[x.id]={a,b,late,over: x.d<0 && b>=D};
+    SCHED[x.id]={a,b,late,shift,done:own.done?parse(own.done):null,over: x.d<0 && b>=D};
   };
   TASKS.forEach(calc);
   return SCHED;
@@ -662,6 +689,40 @@ function span(s){ if(s.from===s.to){const a=s.from>=-1?add(D,s.from):back(add(D,
 function state(s){const {a,b}=span(s); if(TODAY>b) return "past"; if(TODAY>=a) return "now"; return "next";}
 function currentIdx(){ let i=STEPS.findIndex(s=>state(s)==="now"); if(i<0) i=STEPS.findIndex(s=>state(s)==="next"); return i<0?STEPS.length-1:i; }
 
+/* ── 진행 상태: data.js의 status에서 읽음 ── */
+var STATUS=(window.MBM_DATA&&window.MBM_DATA.status)||{};
+const dd=(a,b)=>Math.round((a-b)/864e5);
+function stOf(x){
+  const s=(STATUS[DSNAME]||{})[x.id]||{}, end=endOf(x), start=startOf(x);
+  if(s.done){ const d=parse(s.done), diff=dd(end,d); return {k:"done",d,early:diff>0?diff:0,late:diff<0?-diff:0,note:s.note}; }
+  if(TODAY>end) return {k:"late",days:dd(TODAY,end),note:s.note,eta:s.eta?parse(s.eta):null};
+  if(s.started||TODAY>=start) return {k:"doing",note:s.note};
+  return {k:"todo",note:s.note};
+}
+const depLate=x=>(x.dep||[]).some(id=>BYID[id]&&stOf(BYID[id]).k==="late");
+function stChip(x){
+  const t=stOf(x); let h="";
+  if(t.k==="done") h=`<span class="sc done">✓ 완료 ${md(t.d)}${t.early?` · ${t.early}일 앞당김`:t.late?` · ${t.late}일 늦음`:""}</span>`;
+  else if(t.k==="late") h=`<span class="sc late">⚠ 지연 ${t.days}일${t.eta?` · 예상 ${md(t.eta)}`:""}</span>`;
+  else if(t.k==="doing") h=`<span class="sc doing">진행 중</span>`;
+  if(t.k!=="done"&&depLate(x)) h+=`<span class="sc risk">선행 업무 지연</span>`;
+  if(schedule()[x.id].shift) h+=`<span class="sc risk">선행이 늦게 끝나 ${schedule()[x.id].shift}일 밀림</span>`;
+  if(t.note) h+=`<span class="sc note">${esc(t.note)}</span>`;
+  return h;
+}
+function renderProg(){
+  const box=document.getElementById("prog"); if(!box) return;
+  const all=TASKS.filter(x=>!x.role), st=all.map(x=>[x,stOf(x)]);
+  const c={done:0,doing:0,late:0,todo:0}; st.forEach(([,t])=>c[t.k]++);
+  const late=st.filter(([,t])=>t.k==="late").sort((a,b)=>b[1].days-a[1].days);
+  const early=st.filter(([,t])=>t.k==="done"&&t.early);
+  const pct=all.length?Math.round(c.done/all.length*100):0;
+  box.innerHTML=`<div class="pg-sum"><b>진행 현황</b>
+    <span class="sc done">완료 ${c.done}</span><span class="sc doing">진행 중 ${c.doing}</span><span class="sc late">지연 ${c.late}</span><span class="sc">예정 ${c.todo}</span>
+    <span class="pbar" aria-label="완료율 ${pct}%"><i style="width:${pct}%"></i></span><span class="pct">${pct}%</span></div>
+    ${late.length?`<div class="pg-list late"><b>지연</b>${late.map(([x,t])=>`<button type="button" class="dlink" data-step="${stepOf(x)}">${esc(x.t)} · ${t.days}일 (마감 ${md(endOf(x))})</button>`).join("")}</div>`:""}
+    ${early.length?`<div class="pg-list early"><b>앞당겨 완료</b>${early.map(([x,t])=>`<button type="button" class="dlink" data-step="${stepOf(x)}">${esc(x.t)} · ${t.early}일</button>`).join("")}</div>`:""}`;
+}
 function depLine(x){
   if(!x.dep||!x.dep.length) return "";
   return `<span class="dep">선행 ${x.dep.map(id=>{const p=BYID[id];return `<button type="button" class="dlink ${p.k}" data-step="${stepOf(p)}" title="Step ${stepOf(p)}로 이동">${esc(p.t)}</button>`}).join("")}</span>`;
@@ -669,8 +730,8 @@ function depLine(x){
 function table(list,sid,grp,showTrk){
   const body=list.map((x,i)=>{
     const key=`${sid}-${grp}-${i}`, open=!closed.has(key), n=i+1, kids=x.s||[];
-    const head=`<tr class="p ${open?"open":""}"><td class="no">${n}</td>
-      <td class="t">${kids.length?`<button class="tog" type="button" data-k="${key}" aria-expanded="${open}"><span class="car">▶</span>${esc(x.t)} <span class="cnt">${kids.length}</span></button>`:`<span style="padding-left:18px">${esc(x.t)}</span>`}${showTrk?`<span class="trk ${x.k}">${TRK[x.k]}</span>`:""}${depLine(x)}</td>
+    const head=`<tr class="p ${open?"open":""} st-${stOf(x).k}"><td class="no">${n}</td>
+      <td class="t">${kids.length?`<button class="tog" type="button" data-k="${key}" aria-expanded="${open}"><span class="car">▶</span>${esc(x.t)} <span class="cnt">${kids.length}</span></button>`:`<span style="padding-left:18px">${esc(x.t)}</span>`}${showTrk?`<span class="trk ${x.k}">${TRK[x.k]}</span>`:""}${stChip(x)}${depLine(x)}</td>
       <td class="ty"><b class="tag ${x.ty}">${TY[x.ty]}</b></td><td class="o">${esc(x.o)}</td>
       <td class="d"><span class="r">${(()=>{const o=d=>Math.round((d-D)/864e5);const A=o(startOf(x)),B=o(endOf(x));return A===B?rel(B):rel(A)+"~"+rel(B).replace("D","")})()}</span>${when(x)}${schedule()[x.id].over?' <span class="chip hol">D-day 이후로 밀림</span>':""}</td></tr>`;
     const subs=kids.map((c,j)=>`<tr class="c" ${open?"":"hidden"}><td class="no">${n}-${j+1}</td>
@@ -698,6 +759,7 @@ function renderSteps(){
         <span class="st-when"><span class="rel">${s.lab}</span>${s.from===s.to?fmt(a):fmt(a)+" – "+fmt(b)}</span>
         <span class="st-meta">${stChip}
           ${mine?`<span class="chip">직접 ${mine}</span>`:""}
+          ${(()=>{const l=TASKS.filter(x=>!x.role&&stepOf(x)===i).map(stOf);const d=l.filter(t=>t.k==="done").length,lt=l.filter(t=>t.k==="late").length;return (d?`<span class="chip c-done">완료 ${d}/${l.length}</span>`:"")+(lt?`<span class="chip c-late">지연 ${lt}</span>`:"");})()}
           ${fb.length?`<span class="chip fbk">피드백 ${fb.length}</span>`:""}
           ${decs.length?`<span class="chip dc">결정 ${decs.length}</span>`:""}
           ${holChips(s)}</span>
@@ -750,8 +812,8 @@ function renderCal(){
       const contL=e.a<w, contR=e.b>we, single=+e.a===+e.b;
       const range=single?`${md(e.b)} 마감`:`${md(e.a)} 시작 → ${md(e.b)} 마감`;
       const dep=e.x.dep?` · 선행: ${e.x.dep.map(id=>BYID[id].t).join(", ")}`:"";
-      bars+=`<button type="button" class="bar ${e.x.k} ${e.x.role?"fbb":""} ${contL?"cl":""} ${contR?"cr":""}" style="grid-column:${s+1}/${t+2};grid-row:${L+2}" data-step="${stepOf(e.x)}" title="${esc(e.x.t)} · ${range}${esc(dep)}">
-        <span class="bt">${e.x.dep?'<span class="bd">↳</span>':""}${e.x.role?"[피드백] ":""}${esc(e.x.t)}</span><span class="br">${contL?"◀ ":""}${range}${contR?" ▶":""}</span></button>`;
+      bars+=`<button type="button" class="bar ${e.x.k} b-${stOf(e.x).k} ${e.x.role?"fbb":""} ${contL?"cl":""} ${contR?"cr":""}" style="grid-column:${s+1}/${t+2};grid-row:${L+2}" data-step="${stepOf(e.x)}" title="${esc(e.x.t)} · ${range}${esc(dep)}">
+        <span class="bt">${stOf(e.x).k==="done"?"✓ ":stOf(e.x).k==="late"?"⚠ ":""}${e.x.dep?'<span class="bd">↳</span>':""}${e.x.role?"[피드백] ":""}${esc(e.x.t)}</span><span class="br">${contL?"◀ ":""}${range}${contR?" ▶":""}</span></button>`;
     });
     weeks+=`<div class="wk">${head}${bars}${lanes.length?"":`<div class="nobar" style="grid-row:2;grid-column:1/8"></div>`}</div>`;
     if(rows.length){ ag+=`<div class="ag-day ${TODAY>=w&&TODAY<=we?"today":""}"><div class="ag-h">${fmt(w)} – ${fmt(we)}</div>${rows.map(e=>`<button type="button" class="ev ${e.x.k} ${e.x.role?"fbb":""}" data-step="${stepOf(e.x)}"><b>${e.x.role?"[피드백] ":""}${esc(e.x.t)}</b><br><span class="c-rel">${+e.a===+e.b?fmt(e.b)+" 마감":fmt(e.a)+" 시작 → "+fmt(e.b)+" 마감"}${e.x.dep?" · 선행: "+esc(e.x.dep.map(id=>BYID[id].t).join(", ")):""}</span></button>`).join("")}</div>`; }
@@ -760,7 +822,7 @@ function renderCal(){
     <div class="cal-wrap"><div class="cal-dows">${DOW.map((x,i)=>`<div class="${i>4?"we":""}">${x}</div>`).join("")}</div>${weeks}</div><div class="agenda">${ag}</div>`;
 }
 
-function render(){ renderSteps(); renderCal(); }
+function render(){ renderProg(); renderSteps(); renderCal(); }
 function setView(v){ VIEW=v; document.getElementById("tl").hidden=v!=="step"; document.getElementById("cal").hidden=v!=="cal";
   document.querySelectorAll("#view button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===v))); }
 function select(i,scroll){ active=(active===i&&!scroll)?null:i; render(); if(scroll&&active!=null){const el=document.getElementById(STEPS[i].id); el&&el.scrollIntoView({block:"start",behavior:"smooth"});} }
@@ -768,6 +830,7 @@ function setD(s){ D=parse(s); document.getElementById("dday").value=s; SCHED_D=n
   try{localStorage.setItem("mbm-d-"+DSNAME,s)}catch(e){}
   active=currentIdx(); render(); }
 
+document.getElementById("prog").addEventListener("click",e=>{const b=e.target.closest("[data-step]");if(!b)return;setView("step");active=null;select(+b.dataset.step,true);});
 document.getElementById("view").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setView(b.dataset.v)});
 document.getElementById("cal").addEventListener("click",e=>{const b=e.target.closest("[data-step]");if(!b)return;setView("step");active=null;select(+b.dataset.step,true);});
 document.getElementById("tl").addEventListener("click",e=>{
