@@ -438,7 +438,6 @@ tr.p.st-late td{box-shadow:inset 0 0 0 9999px rgba(178,58,46,.04)}
   <header>
     <h1>MBM 세션 준비표</h1>
     <p class="lede">11월 MY · PH 세미나 일정과 사람별 준비를 한 곳에서 봅니다. 위에서 이름을 누르면 그 사람 기준으로 바뀝니다. <span class="upd" id="upd"></span></p>
-    <div class="news" id="news"></div>
   </header>
 
   <div class="whobar" role="group" aria-label="누구 기준으로 볼지">
@@ -1007,7 +1006,7 @@ function renderPV(){
 $("pv-view").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;PV=b.dataset.v;renderPV();});
 (function(){const M=window.MBM_DATA||{};
   $("upd").textContent=M.updated?`마지막 업데이트 ${M.updated}`:"";
-  const n=(M.news||[]).slice(0,5); $("news").innerHTML=n.length?`<h3>업데이트 소식</h3><ul>${n.map(x=>`<li><b>${esc(x.d)}</b>${esc(x.t)}</li>`).join("")}</ul>`:"";})();
+})();
 applyWho();
 })();
 </script>
