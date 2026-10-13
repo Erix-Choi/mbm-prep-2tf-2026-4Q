@@ -418,14 +418,12 @@ tr.c[hidden]{display:none}
   </header>
 
   <div class="whobar" role="group" aria-label="누구 기준으로 볼지">
-    <span class="lbl">누구 기준으로 볼까요</span>
+    <span class="lbl">무엇 기준으로 볼까요</span>
     <span class="seg" id="who">
       <button type="button" data-w="all" aria-pressed="true">전체</button>
       <button type="button" data-w="규완" aria-pressed="false">규완</button>
-      <button type="button" data-w="승완" aria-pressed="false">승완</button>
-      <button type="button" data-w="민영" aria-pressed="false">민영</button>
-      <button type="button" data-w="현택" aria-pressed="false">현택</button>
-      <button type="button" data-w="승규" aria-pressed="false">승규</button>
+      <button type="button" data-w="MY" aria-pressed="false">🇲🇾 말레이시아</button>
+      <button type="button" data-w="PH" aria-pressed="false">🇵🇭 필리핀</button>
     </span>
     <span class="who-note" id="who-note"></span>
   </div>
@@ -588,19 +586,19 @@ const DATA={
   "규완":{d:"2026-11-17",start:"2026-10-13",steps:GW_STEPS,tasks:GW_TASKS,lbl:"교량 세미나 D-day",
     h2:'규완 준비 <span>메인 발표자료</span>',
     lede:'11/17 말레이시아 Civil NX 교량 세미나의 <b>메인 발표 하나</b>만 준비합니다. 흐름은 <b>왜 CIVIL NX with Hyper-S</b> → <b>이번 릴리스 신규 기능</b> → <b>NX Bridge 소개</b> → 마무리. 아래는 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일과 정할 것입니다.'},
-  "승완":{d:"2026-11-17",start:"2026-10-13",steps:PROC_MY_STEPS,tasks:PROC_MY_TASKS,lbl:"교량 세미나 D-day",
-    h2:'승완 준비 <span>말레이시아 Civil NX 교량 세미나 주도 · 11/17</span>',
+  "MY":{d:"2026-11-17",start:"2026-10-13",steps:PROC_MY_STEPS,tasks:PROC_MY_TASKS,lbl:"교량 세미나 D-day",
+    h2:'🇲🇾 말레이시아 준비 <span>Civil NX 교량 세미나 · 11/17 · 주도 승완</span>',
     lede:'「오프라인 MBM 운영 프로세스 v3」대로 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일입니다. 행사 후 팔로우업은 넣지 않았습니다.'},
-  "민영":{d:"2026-11-23",start:"2026-10-16",steps:PROC_PH_STEPS,tasks:PROC_PH_TASKS,lbl:"세부 세미나 D-day",
-    h2:'민영 준비 <span>필리핀 Gen NX 세미나 주도 · 세부 11/23 또는 24 · 다바오 11/26</span>',
-    lede:'「오프라인 MBM 운영 프로세스 v3」대로 세부 세미나(D)에서 거꾸로 잡은 Step별 할 일이고, 다바오는 마지막 Step으로 이어 붙였습니다. 10/15(목)까지 예비군이라 10/16(금)부터 잡았습니다. 세부 날짜가 24일로 정해지면 위 D-day만 바꾸면 됩니다.'}
+  "PH":{d:"2026-11-23",start:"2026-10-16",steps:PROC_PH_STEPS,tasks:PROC_PH_TASKS,lbl:"세부 세미나 D-day",
+    h2:'🇵🇭 필리핀 준비 <span>Gen NX 세미나 · 세부 11/23 또는 24 · 다바오 11/26 · 주도 민영</span>',
+    lede:'「오프라인 MBM 운영 프로세스 v3」대로 세부 세미나(D)에서 거꾸로 잡은 Step별 할 일이고, 다바오는 마지막 Step으로 이어 붙였습니다. 민영이 10/15(목)까지 예비군이라 10/16(금)부터 잡았습니다. 세부 날짜가 24일로 정해지면 위 D-day만 바꾸면 됩니다.'}
 };
 let DSNAME="규완", REG="MY";
 const holOK=h=>h.w.includes("KR")||h.w.includes(REG);
 function absFix(){ TASKS.forEach(x=>{ if(x.abs){ const o=Math.round((parse(x.abs)-D)/864e5); x.st=o; x.d=o; } }); }
 function useDataset(name){
   const ds=DATA[name]; if(!ds) return false;
-  DSNAME=name; REG=name==="민영"?"PH":"MY"; STEPS=ds.steps; TASKS=ds.tasks; BYID=Object.fromEntries(TASKS.map(x=>[x.id,x]));
+  DSNAME=name; REG=name==="PH"?"PH":"MY"; STEPS=ds.steps; TASKS=ds.tasks; BYID=Object.fromEntries(TASKS.map(x=>[x.id,x]));
   PLAN_START=parse(ds.start); SCHED_D=null; closed.clear(); active=null;
   document.getElementById("dday-lbl").textContent=ds.lbl;
   document.getElementById("plan-h2").innerHTML=ds.h2;
@@ -796,13 +794,13 @@ useDataset("규완");
 const EVT=(window.MBM_DATA&&window.MBM_DATA.events)||[];
 /* k: go 이동 · prep 준비 · ev 세미나 · fu 팔로업 · opt 필요 시/미정 — a,b는 11월 날짜 */
 const PPL=(window.MBM_DATA&&window.MBM_DATA.people)||[];
-const TODO_PEOPLE=["규완","승완","민영","현택","승규"];
+const TODO_PEOPLE=["규완","MY","PH"];
+const LABEL={all:"전체",규완:"규완",MY:"말레이시아",PH:"필리핀"};
+const REGION={MY:{ev:x=>x.r.includes("말레이시아"),people:["승완","현택","규완"]},PH:{ev:x=>/세부|다바오/.test(x.r),people:["민영","승완","승규","현택"]}};
 const NOTE={all:"모든 행사 · 인원 일정 · 할 일을 봅니다.",
   "규완":"규완의 일정 · 참석 행사 · 할 일, 그리고 메인 발표자료 준비를 봅니다.",
-  "민영":"민영이 주도하는 필리핀 세미나 준비(프로세스 v3)와 일정 · 할 일을 봅니다.",
-  "승완":"승완이 주도하는 말레이시아 세미나 준비(프로세스 v3)와 일정 · 할 일을 봅니다.",
-  "현택":"현택의 일정 · 참석 행사 · 할 일만 봅니다.",
-  "승규":"승규의 일정 · 참석 행사 · 할 일만 봅니다."};
+  "MY":"말레이시아 세미나(11/17 교량 · 주도 승완) 준비와 관련 인원 일정 · 할 일을 봅니다.",
+  "PH":"필리핀 세미나(세부 · 다바오 · 주도 민영) 준비와 관련 인원 일정 · 할 일을 봅니다."};
 const D0=14, D1=27, WD="일월화수목금토";
 const evDays=new Set([17,23,24,26]);
 let WHO="all";
@@ -813,14 +811,14 @@ const $=id=>document.getElementById(id);
 
 function renderEvents(){
   $("evt-body").innerHTML=EVT.map(x=>{
-    const has=WHO==="all"||x.w.some(n=>bare(n)===WHO);
+    const has=WHO==="all"||(REGION[WHO]?REGION[WHO].ev(x):x.w.some(n=>bare(n)===WHO));
     return `<tr class="${x.main?"main":""} ${has?"":"dim"}"><td class="dt">${esc(x.d)}${x.main?'<span class="badge">D · 메인 발표</span>':""}</td><td>${esc(x.r)}</td><td>${esc(x.e)}</td><td class="who">${x.w.map(n=>bare(n)===WHO||(WHO==="all"&&bare(n)==="규완")?`<span class="me">${esc(n)}</span>`:esc(n)).join(", ")}</td></tr>`}).join("");
 }
 function lane(segs,row){return segs.map(([a,b,k,t])=>`<div class="seg-b k-${k}" style="grid-column:${a-D0+2}/${b-D0+3};grid-row:${row}" title="11/${a}${b>a?"–11/"+b:""} · ${esc(t)}">${esc(t)}</div>`).join("")}
 function renderGrid(){
   let h='<div style="grid-row:1"></div>', row=1;
   for(let d=D0;d<=D1;d++){const wd=new Date(2026,10,d).getDay();h+=`<div class="dh ${wd===0||wd===6?"we":""} ${evDays.has(d)?"ev":""}" style="grid-row:1">11/${d}<br>${WD[wd]}</div>`}
-  PPL.filter(p=>WHO==="all"||p.n===WHO).forEach((p,i)=>{
+  PPL.filter(p=>WHO==="all"||(REGION[WHO]?REGION[WHO].people.includes(p.n):p.n===WHO)).forEach((p,i)=>{
     if(i){row++;h+=`<div class="rowline" style="grid-row:${row}"></div>`}
     row++; h+=`<div class="nm" style="grid-row:${row}">${esc(p.n)}<small>${esc(p.tag)}</small></div>`+lane(p.main,row);
     if(p.opt){row++; h+=`<div class="nm sub" style="grid-column:1;grid-row:${row}">필요 시 · 미정</div>`+lane(p.opt,row);}
@@ -833,8 +831,8 @@ function applyWho(){
   if(DATA[WHO]&&DSNAME!==WHO) useDataset(WHO);
   document.querySelectorAll("#who button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.w===WHO)));
   $("who-note").textContent=NOTE[WHO];
-  $("pg-sub").textContent="11/14 ~ 11/27"+(WHO==="all"?" · 전체 인원":" · "+WHO);
-  $("todo-title").textContent=WHO==="all"?"할 일 · 메모 (전체)":`할 일 · 메모 · ${WHO}`;
+  $("pg-sub").textContent="11/14 ~ 11/27"+(WHO==="all"?" · 전체 인원":" · "+LABEL[WHO]);
+  $("todo-title").textContent=WHO==="all"?"할 일 · 메모 (전체)":`할 일 · 메모 · ${LABEL[WHO]}`;
   if(WHO!=="all") void 0;
   renderEvents(); renderGrid(); renderTodos(); renderPV();
 }
@@ -857,7 +855,7 @@ function renderTodos(){
   const people=WHO==="all"?TODO_PEOPLE:[WHO];
   L.innerHTML=people.map(n=>{
     const its=sorted.filter(x=>x.who===n);
-    return `<div class="todo-grp">${WHO==="all"?`<h4>${esc(n)}</h4>`:""}${its.length?its.map(itemRow).join(""):`<div class="todo-empty">아직 적힌 항목이 없습니다.</div>`}</div>`}).join("");
+    return `<div class="todo-grp">${WHO==="all"?`<h4>${esc(LABEL[n]||n)}</h4>`:""}${its.length?its.map(itemRow).join(""):`<div class="todo-empty">아직 적힌 항목이 없습니다.</div>`}</div>`}).join("");
 }
 setStatus("추가 · 변경은 규완에게 알려주세요.");
 /* ── 사람별 Step · 캘린더 (규완 외) ── */
