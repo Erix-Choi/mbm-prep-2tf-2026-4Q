@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>MBM 세션 준비표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 세로 공정 타임라인(왼쪽 레일) + 선택한 Step만 펼침. 펼친 Step = [업무 → 세부 단계] 계층 표(기본/NX) | 정해야 할 것 */
+:root{
+  --bg:#F4F6F7; --surface:#FFFFFF; --sunk:#F8FAFA; --ink:#15212B; --muted:#5B6873; --faint:#8A959E; --line:#DCE1E5; --line-soft:#EBEEF1;
+  --accent:#0D6A72; --accent-soft:#E3F0F1;
+  --nx:#B0560D; --nx-soft:#FBEFE4; --nx-line:#EBCFB5; --nx-sunk:#FDF7F1;
+  --cv:#1F5FA6; --cv-soft:#E6EEF8; --cv-line:#C4D5EC; --cv-sunk:#F3F7FC;
+  --decide:#6B3FA0; --decide-soft:#F2ECF9; --decide-line:#D9CCEB;
+  --past:#9AA4AC; --warn:#A1460B; --warn-soft:#FCEBDD;
+  --tP:#2F5DA8; --tS:#3C7A4B; --tR:#8A6A12; --tE:#7A4FA8; --tX:#B23A2E;
+  --f-sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:14px;line-height:1.55;padding:28px 20px 60px}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.lede{color:var(--muted);margin:6px 0 0;max-width:72ch}
+.lede b{color:var(--ink);font-weight:600}
+
+.bar{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.bar .lbl{font-size:12px;color:var(--muted);letter-spacing:.04em;margin-right:8px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:6px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface);font-weight:600}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=date]{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 8px}
+.today{margin-left:auto;font-size:13px;color:var(--muted)}
+.today b{color:var(--accent);font-family:var(--f-mono);font-weight:600}
+.legend{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line-soft);padding-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.legend .sep{width:1px;height:14px;background:var(--line)}
+
+.tl{position:relative;display:flex;flex-direction:column}
+.tl::before{content:"";position:absolute;left:15px;top:14px;bottom:14px;width:2px;background:var(--line)}
+.step{position:relative;padding-left:46px}
+.dot{position:absolute;left:6px;top:15px;width:20px;height:20px;border-radius:50%;background:var(--surface);border:2px solid var(--ink);z-index:1}
+.step.past .dot{border-color:var(--past);background:var(--past)}
+.step.now .dot{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.step.active .dot{background:var(--ink);border-color:var(--ink)}
+.step.active.now .dot{background:var(--accent);border-color:var(--accent)}
+.step-head{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:baseline;text-align:left;background:none;border:0;color:inherit;font:inherit;padding:12px 10px 12px 0;cursor:pointer;border-radius:6px}
+.step-head:hover .st-title{color:var(--accent)}
+.st-title{font-size:16px;font-weight:600;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.st-num{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:500}
+.step.active .st-title{font-size:19px}
+.step:not(.active) .st-title{color:var(--muted)}
+.step:not(.active).now .st-title{color:var(--ink)}
+.st-when{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);white-space:nowrap;text-align:right}
+.st-when .rel{color:var(--ink);font-weight:600;margin-right:8px}
+.st-meta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);background:var(--surface);white-space:nowrap}
+.chip.nx{color:var(--nx);border-color:var(--nx-line);background:var(--nx-soft)}
+.chip.cv{color:var(--cv);border-color:var(--cv-line);background:var(--cv-soft)}
+.chip.dc{color:var(--decide);border-color:var(--decide-line);background:var(--decide-soft)}
+.chip.state-now{color:var(--surface);background:var(--accent);border-color:var(--accent);font-weight:600}
+.chip.state-past{color:var(--past)}
+.chip.hol{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+
+.body{display:none;padding:2px 0 26px}
+.step.active .body{display:block}
+.note{font-size:13px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;margin:0 0 16px;max-width:92ch}
+.note.warn{background:var(--warn-soft)}
+.note b{font-weight:600}
+.strat{display:flex;flex-direction:column;gap:14px}
+.strat h2{font-size:18px;margin:0;font-weight:700}
+.rule{margin:0;font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 14px}
+.rule b{color:var(--accent);margin-right:8px}
+.talk{background:var(--decide-soft);border:1px solid var(--decide-line);border-radius:10px;padding:12px 16px}
+.talk h3{margin:0 0 6px;font-size:13.5px;color:var(--decide)}
+.talk h3 .sub{font-weight:400;font-size:12px;color:var(--muted);margin-left:6px}
+.tg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:12px;margin-top:8px;align-items:start}
+.grp{background:var(--surface);border:1px solid var(--decide-line);border-radius:9px;padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+.grp.wide{grid-column:1/-1}
+.grp.multi{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px 18px}
+.grp.multi h4{grid-column:1/-1}
+.grp.multi .it{border-top:0;padding-top:0}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;margin-top:4px}
+.role{border-radius:8px;padding:8px 12px;border:1px solid var(--line)}
+.role h5{margin:0 0 4px;font-size:12.5px}
+.role ul{margin:0;padding-left:16px;font-size:12.5px;display:flex;flex-direction:column;gap:2px}
+.role.me{background:var(--accent-soft);border-color:transparent} .role.me h5{color:var(--accent)}
+.role.fb{border-style:dashed} .role.fb h5{color:var(--muted)}
+.role.sales{background:var(--sunk)} .role.sales h5{color:var(--ink)}
+.grp h4{margin:0;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.gn{color:var(--decide);font-size:15px}
+.urg{font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:0 6px}
+.it{border-top:1px dashed var(--line-soft);padding-top:8px;display:flex;flex-direction:column;gap:4px}
+.grp h4+.it{border-top:0;padding-top:0}
+.it b{font-size:13px}
+.it p{margin:0;font-size:12.5px;color:var(--ink);line-height:1.55}
+.why,.pro,.tm{display:inline-block;font-size:10.5px;font-weight:700;border-radius:3px;padding:0 5px;margin-right:6px;vertical-align:1px}
+.why{color:var(--decide);background:var(--decide-soft)}
+.pro{color:var(--accent);background:var(--accent-soft)}
+.tm{color:var(--muted);background:var(--sunk);border:1px solid var(--line)}
+.it p.term{color:var(--muted)}
+.gloss{margin:10px 0 0;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.gloss i{font-style:normal;font-weight:600;color:var(--ink);margin-right:4px}
+.known{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;margin:8px 0 4px}
+.known b{font-size:12px;color:var(--ink);margin-right:4px}
+.known span{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.known em{font-style:normal;font-weight:600;color:var(--accent);margin-left:4px}
+.mx-wrap{overflow-x:auto;margin-top:8px}
+.mx{width:100%;min-width:640px;border-collapse:separate;border-spacing:6px;table-layout:fixed}
+.mx th,.mx td{vertical-align:top;text-align:left}
+.mx thead th{font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px}
+.mx thead th small,.mx tbody th small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:1px}
+.mx thead th:first-child{width:180px}
+.mx tbody th small{white-space:normal;overflow-wrap:anywhere}
+.h-hi{background:var(--warn-soft);color:var(--warn)} .h-md{background:var(--sunk);color:var(--ink);border:1px solid var(--line)} .h-lo{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
+.mx tbody th{font-size:13px;font-weight:700;color:var(--decide);padding:8px 10px;background:var(--surface);border:1px solid var(--decide-line);border-radius:7px}
+.mx td{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px;min-height:40px}
+.mx td:empty::after{content:"—";color:var(--faint);font-size:12px;padding:4px}
+.mc{display:block;text-decoration:none;color:var(--ink);font-size:12.5px;line-height:1.4;padding:5px 8px;border-radius:5px;background:var(--decide-soft);margin-bottom:5px}
+.mc:last-child{margin-bottom:0}
+.mc:hover{outline:1px solid var(--decide)}
+.mc em{display:block;font-style:normal;font-size:11px;color:var(--muted)}
+.mn{display:inline-block;min-width:18px;font-weight:700;color:var(--decide);font-family:var(--f-mono)}
+.dh3{margin:16px 0 0;font-size:13px;color:var(--decide)}
+.it:target{outline:2px solid var(--decide);outline-offset:4px;border-radius:4px}
+html{scroll-behavior:smooth}
+.talk ol{margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:3px 24px;font-size:13px}
+.paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px;align-items:start}
+.path{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.path.nx{border-color:var(--nx-line)} .path.cv{border-color:var(--cv-line)}
+.path-h{padding:12px 16px;border-bottom:1px solid var(--line-soft)}
+.path.nx .path-h{background:var(--nx-soft)} .path.cv .path-h{background:var(--cv-soft)}
+.path-h .k{font-size:11.5px;font-weight:600;letter-spacing:.05em}
+.path.nx .k{color:var(--nx)} .path.cv .k{color:var(--cv)}
+.path-h h3{margin:2px 0 0;font-size:15.5px;line-height:1.45;text-wrap:balance}
+.path-b{padding:12px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.path-b h4{margin:0 0 4px;font-size:11.5px;letter-spacing:.05em;color:var(--faint);font-weight:600}
+.path-b p{margin:0;font-size:13.5px}
+.ph{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ph li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;padding:6px 0;border-top:1px dashed var(--line-soft);font-size:13px}
+.ph li:first-child{border-top:0}
+.ph .w{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ph b{font-weight:600}
+.mini{width:100%;border-collapse:collapse;font-size:12.5px;min-width:0}
+.mini td{padding:6px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.mini td:first-child{padding-left:0;font-weight:600;white-space:nowrap;width:1%}
+.mini tr:last-child td{border-bottom:0}
+.tk{display:inline-block;font-size:10.5px;font-weight:700;color:var(--decide);background:var(--decide-soft);border:1px solid var(--decide-line);border-radius:4px;padding:0 5px;margin-left:6px;white-space:nowrap;vertical-align:1px}
+.cons{display:flex;flex-direction:column;gap:8px}
+.cons h2{font-size:16px;margin:0;font-weight:700}
+.cons h2 span{font-size:12px;font-weight:400;color:var(--muted);margin-left:8px}
+.cons-b{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:12px 16px}
+.cons-b h4{margin:0 0 4px;font-size:13px}
+.cons-b ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink);display:flex;flex-direction:column;gap:3px}
+.flow h3{margin:4px 0 8px;font-size:14px}
+.flow h3 span{font-weight:400;font-size:12px;color:var(--muted);margin-left:6px}
+.ftbl{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:560px}
+.ftbl th,.ftbl td{padding:7px 12px;border-bottom:1px solid var(--line-soft);text-align:left;vertical-align:top}
+.ftbl td:first-child{font-weight:600;white-space:nowrap;color:var(--muted)}
+.ftbl th.fnx{color:var(--nx)} .ftbl th.fcv{color:var(--cv)}
+.ftbl td.both{background:var(--sunk);text-align:center}
+.ladder{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.ladder .lt{font-size:12px;color:var(--muted);margin-right:6px;font-weight:600}
+.ladder .rung{padding:3px 10px;border-radius:6px;font-weight:600}
+.ladder .r1{background:var(--sunk);color:var(--muted);border:1px dashed var(--line)}
+.ladder .r2,.ladder .r3{background:var(--cv-soft);color:var(--cv)}
+.ladder .r4{background:var(--nx-soft);color:var(--nx)}
+.ladder .arr{color:var(--faint)}
+.ladder .cap{flex-basis:100%;font-size:12.5px;color:var(--muted);margin-top:2px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:22px;align-items:start}
+.sec-h{font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sec-h button{font:inherit;font-size:12px;letter-spacing:0;font-weight:500;color:var(--accent);background:none;border:0;cursor:pointer;padding:2px 4px}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.group+.group{margin-top:14px}
+.group.nx{border-color:var(--nx-line)}
+.g-cap{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 14px;font-size:13px;font-weight:600;border-bottom:1px solid var(--line-soft)}
+.group.nx .g-cap{background:var(--nx-soft);color:var(--nx);border-bottom-color:var(--nx-line)}
+.group.cm{border-color:var(--line)}
+.group.cm .g-cap{background:var(--sunk);color:var(--muted)}
+.group.fbg{border-style:dashed}
+.role-h{margin:6px 0 8px;font-size:13px;font-weight:700}
+.role-h.fb{margin-top:18px;color:var(--muted)}
+.role-h span{font-weight:400;font-size:12px;color:var(--faint);margin-left:6px}
+.group+.role-h{margin-top:18px}
+.trk{display:inline-block;margin-left:8px;font-size:10.5px;font-weight:700;padding:0 5px;border-radius:3px;vertical-align:1px}
+.trk.nx{color:var(--nx);background:var(--nx-soft)} .trk.cv{color:var(--cv);background:var(--cv-soft)} .trk.cm{color:var(--muted);background:var(--sunk)}
+.chip.fbk{border-style:dashed}
+.group.cv{border-color:var(--cv-line)}
+.group.cv .g-cap{background:var(--cv-soft);color:var(--cv);border-bottom-color:var(--cv-line)}
+.g-cap .h{font-weight:400;font-size:12px;color:var(--faint);font-family:var(--f-mono)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:600px}
+th{text-align:left;font-size:11.5px;font-weight:600;color:var(--faint);letter-spacing:.04em;padding:8px 10px 6px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th:first-child,td:first-child{padding-left:14px}
+td{padding:7px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.no{font-family:var(--f-mono);font-size:12px;color:var(--faint);width:1%;white-space:nowrap;font-variant-numeric:tabular-nums}
+.o{white-space:nowrap;color:var(--muted);font-size:12.5px;width:1%}
+.d{white-space:nowrap;font-family:var(--f-mono);font-size:12.5px;width:1%;font-variant-numeric:tabular-nums}
+.d .r{color:var(--faint);margin-right:6px}
+.d.inh{color:var(--faint)}
+.ty{width:1%;white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:0 6px;border-radius:4px;border:1px solid currentColor;line-height:17px}
+.tag.P{color:var(--tP)}.tag.S{color:var(--tS)}.tag.R{color:var(--tR)}.tag.E{color:var(--tE)}.tag.X{color:var(--tX)}
+
+tr.p td{background:var(--sunk);border-bottom-color:var(--line)}
+.group.nx tr.p td{background:var(--nx-sunk);border-bottom-color:var(--nx-line)}
+.group.cv tr.p td{background:var(--cv-sunk);border-bottom-color:var(--cv-line)}
+tr.p .t{font-weight:600}
+tr.p .no{color:var(--ink);font-weight:600}
+.tog{display:inline-flex;align-items:center;gap:8px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;text-align:left}
+.car{display:inline-block;width:10px;color:var(--faint);transition:transform .12s;font-size:10px}
+tr.p.open .car{transform:rotate(90deg)}
+.cnt{font-weight:400;font-size:11.5px;color:var(--faint);font-family:var(--f-mono)}
+tr.c .t{padding-left:32px;color:var(--ink)}
+tr.c .t .x{display:block;font-size:12px;color:var(--warn);margin-top:1px}
+tr.c .t .x.i{color:var(--muted)}
+tr.c[hidden]{display:none}
+.empty{padding:12px 14px;color:var(--faint);font-size:13px}
+.ctx{font-size:12.5px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.ctx span{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+
+.decide{display:flex;flex-direction:column;gap:10px}
+.q{background:var(--surface);border:1px solid var(--decide-line);border-radius:10px;padding:11px 14px}
+.q-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.q-t{font-weight:600;font-size:13.5px}
+.q-who{font-size:11.5px;color:var(--decide);white-space:nowrap;font-weight:600}
+.q-n{font-size:12.5px;color:var(--muted);margin-top:4px}
+.q-opt{font-size:12.5px;margin-top:6px}
+.q-opt b{color:var(--decide);font-weight:600}
+.q.nx{border-left:3px solid var(--nx)}
+.q.cv{border-left:3px solid var(--cv)}
+.q-trk{font-size:11px;font-weight:600;margin-right:6px}.q.nx .q-trk{color:var(--nx)}.q.cv .q-trk{color:var(--cv)}
+.q-none{font-size:13px;color:var(--faint);padding:4px 2px}
+
+.nav{display:flex;gap:8px;margin-top:16px}
+.nav button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:7px;padding:6px 12px;cursor:pointer}
+.nav button:disabled{opacity:.4;cursor:default}
+.cal{display:flex;flex-direction:column;gap:10px}
+.cal-note{font-size:12px;color:var(--faint);margin:0}
+.cal-note b{color:var(--muted)}
+.cal-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.cal-dows,.wk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) repeat(2,minmax(0,.6fr))}
+.cal-dows div{font-size:11.5px;font-weight:600;color:var(--faint);padding:7px 8px;background:var(--sunk);border-bottom:1px solid var(--line);letter-spacing:.04em}
+.wk{grid-auto-rows:auto;row-gap:3px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.wk:last-child{border-bottom:0}
+.dh{grid-row:1;padding:5px 7px 3px;min-height:44px;border-right:1px solid var(--line-soft);display:flex;flex-direction:column;gap:2px;min-width:0}
+.dh:nth-child(7){border-right:0}
+.dh.we{background:var(--sunk)}
+.dh.today{box-shadow:inset 0 2px 0 var(--accent)}
+.dh.today .c-day{color:var(--accent)}
+.dh.dday{background:var(--accent-soft)}
+.c-top{display:flex;justify-content:space-between;align-items:baseline;gap:4px;font-family:var(--f-mono);font-size:11.5px}
+.c-day{color:var(--ink);font-weight:600}
+.c-day .m{color:var(--accent);margin-right:3px}
+.c-rel{color:var(--faint);font-size:10.5px;font-family:var(--f-mono)}
+.c-hol{font-size:10.5px;color:var(--warn);line-height:1.3}
+.c-step{font-size:10.5px;color:var(--muted);line-height:1.3}
+.ddl{font-size:11px;font-weight:700;color:var(--surface);background:var(--accent);border-radius:4px;padding:1px 5px;align-self:flex-start}
+.bar{margin:0 3px;min-width:0;font:inherit;text-align:left;align-items:flex-start;border:0;cursor:pointer;border-radius:5px;padding:3px 7px;display:flex;flex-direction:column;gap:0;line-height:1.3;color:var(--ink)}
+.bar.nx{background:var(--nx-soft);box-shadow:inset 3px 0 0 var(--nx)}
+.bar.cm,.ev.cm{background:var(--sunk);box-shadow:inset 3px 0 0 var(--muted)}
+.bar.fbb,.ev.fbb{background:transparent;outline:1.5px dashed var(--line);outline-offset:-1.5px}
+.bar.cv{background:var(--cv-soft);box-shadow:inset 3px 0 0 var(--cv)}
+.bar.cl{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:0;box-shadow:none}
+.bar.cr{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:0}
+.bar .bt{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .bd{color:var(--decide);margin-right:3px;font-weight:700}
+.bar .br{font-size:10.5px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar:hover .bt{text-decoration:underline}
+.nobar{height:4px}
+.ev{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;line-height:1.4;padding:5px 8px;border-radius:5px;border:0;cursor:pointer;color:var(--ink)}
+.ev.nx{background:var(--nx-soft);box-shadow:inset 3px 0 0 var(--nx)}
+.ev.cv{background:var(--cv-soft);box-shadow:inset 3px 0 0 var(--cv)}
+.agenda{display:none;flex-direction:column;gap:10px}
+.ag-day{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;gap:5px}
+.ag-day.today{border-color:var(--accent)}
+.ag-h{font-family:var(--f-mono);font-size:12px;font-weight:600}
+.dep{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:11.5px;color:var(--faint);margin:3px 0 0 18px;font-weight:400}
+.dlink{font:inherit;font-size:11.5px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:4px;padding:0 6px;cursor:pointer}
+.dlink.nx{border-color:var(--nx-line);color:var(--nx)} .dlink.cv{border-color:var(--cv-line);color:var(--cv)}
+@media (max-width:760px){.cal-wrap{display:none}.agenda{display:flex}}
+.foot{font-size:12px;color:var(--faint);max-width:92ch}
+/* 11월 일정 · 인원 */
+.ppl{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.ppl h2{margin:0;font-size:17px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.ppl .draft{font-size:12px;font-weight:500;color:var(--warn);background:var(--warn-soft);padding:1px 8px;border-radius:99px}
+.evt-wrap{overflow-x:auto}
+.evt{min-width:640px}
+.evt th{font-size:12px;color:var(--muted);font-weight:600;text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+.evt td{padding:8px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.evt td.dt{font-family:var(--f-mono);white-space:nowrap;font-size:13px}
+.evt tr.main td{background:var(--cv-sunk)}
+.evt .badge{display:inline-block;font-size:11px;font-weight:600;color:var(--surface);background:var(--cv);border-radius:99px;padding:0 7px;margin-left:6px}
+.evt .who b{font-weight:600}
+.evt .who .me{color:var(--cv);font-weight:700}
+.ppl-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.ppl-head h3{margin:0;font-size:14px}
+.ppl-head h3 span{font-weight:400;font-size:12px;color:var(--muted);margin-left:6px}
+.pg-scroll{overflow-x:auto}
+.pg{display:grid;grid-template-columns:132px repeat(14,minmax(52px,1fr));min-width:860px;font-size:12px;row-gap:3px}
+.pg .dh{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-align:center;padding:4px 0 6px;border-bottom:1px solid var(--line)}
+.pg .dh.we{color:var(--faint);background:var(--sunk)}
+.pg .dh.ev{color:var(--cv);font-weight:600}
+.pg .nm{padding:6px 8px 6px 0;font-weight:600;display:flex;flex-direction:column;justify-content:center;line-height:1.3}
+.pg .nm small{font-weight:400;color:var(--muted);font-size:11px}
+.pg .nm.sub{font-weight:400;color:var(--faint);font-size:11px;padding-top:0}
+.pg .seg-b{margin:0 2px;border-radius:5px;padding:5px 6px;line-height:1.3;font-size:11.5px;overflow:hidden;min-height:30px;display:flex;align-items:center}
+.pg .rowline{grid-column:1/-1;border-top:1px solid var(--line-soft);margin:3px 0}
+.k-go{background:#EEF1F4;color:#3E4A55;border:1px solid #D3D9DF}
+.k-prep{background:var(--accent-soft);color:var(--accent);border:1px solid #BFDCDF}
+.k-ev{background:var(--cv);color:#fff;font-weight:600;border:1px solid var(--cv)}
+.k-fu{background:var(--cv-soft);color:var(--cv);border:1px solid var(--cv-line)}
+.k-opt{background:transparent;color:var(--muted);border:1.5px dashed #AEB7BF}
+.whobar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.whobar .lbl{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.whobar .seg button{font-size:14px;padding:7px 16px}
+.who-note{font-size:12.5px;color:var(--muted)}
+.wrap.hide-mine .mine-only,.wrap.hide-plan .plan-only{display:none!important}
+.mine-h{border-top:2px solid var(--ink);padding-top:18px;margin-top:6px}
+.mine-h h2{margin:0;font-size:20px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.mine-h h2 span{font-size:13px;font-weight:500;color:var(--muted)}
+.wrap>.bar{flex-direction:row;align-items:center;flex-wrap:wrap;gap:14px 24px;margin:0;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:auto;line-height:1.55}
+.evt tr.dim td{opacity:.42}
+.todo{border-top:1px solid var(--line-soft);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.todo-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.todo-h h3{margin:0;font-size:14px}
+.todo-st{font-size:12px;color:var(--faint)}
+.todo-add{display:flex;flex-wrap:wrap;gap:8px}
+.todo-add[hidden]{display:none}
+.todo-add select,.todo-add input,.todo-add button{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:7px;padding:6px 9px;background:var(--surface);color:var(--ink)}
+.todo-add select[hidden]{display:none}
+.todo-add input[type=text]{flex:1 1 260px;min-width:0}
+.todo-add button{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;cursor:pointer}
+.todo-grp{display:flex;flex-direction:column;gap:4px}
+.todo-grp h4{margin:6px 0 2px;font-size:12.5px;color:var(--muted)}
+.ti{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 8px;border:1px solid var(--line-soft);border-radius:7px;background:var(--surface)}
+.ti input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);margin:0}
+.ti .tx{font-size:13.5px;overflow-wrap:anywhere}
+.ti.done .tx{color:var(--faint);text-decoration:line-through}
+.ti .meta{font-size:11.5px;color:var(--faint);font-family:var(--f-mono);white-space:nowrap}
+.ti .meta .ov{color:var(--warn);font-weight:600}
+.ti .del{font:inherit;font-size:12px;border:0;background:none;color:var(--faint);cursor:pointer;padding:2px 4px}
+.ti .del:hover{color:var(--tX)}
+.upd{display:inline-block;font-size:12px;color:var(--faint);font-family:var(--f-mono);margin-left:4px}
+.news{margin-top:10px;max-width:80ch;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 14px}
+.news:empty{display:none}
+.news h3{margin:0 0 4px;font-size:12.5px;color:var(--muted)}
+.news ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-size:13px}
+.news b{font-family:var(--f-mono);font-size:12px;color:var(--accent);margin-right:8px}
+.ti .ck{width:16px;height:16px;border:1.5px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent)}
+.ti.done .ck{background:var(--accent-soft);border-color:var(--accent)}
+.todo-empty{font-size:13px;color:var(--faint);padding:4px 2px}
+
+.pv{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.pv[hidden]{display:none}
+.pv-top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.pv-top h2{margin:0;font-size:18px}
+.pv-note{margin:0;font-size:12.5px;color:var(--muted)}
+.pv-steps{display:flex;flex-direction:column;gap:10px}
+.pv-step{border:1px solid var(--line);border-radius:9px;padding:10px 14px}
+.pv-step.now{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.pv-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-bottom:6px}
+.pv-h b{font-size:15px}
+.pv-r{margin-left:auto;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.pv-step ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pv-it{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:10px;padding:6px 0;border-top:1px dashed var(--line-soft);font-size:13px;align-items:baseline}
+.pv-it:first-child{border-top:0}
+.pv-d{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.pv-k{font-size:11px;color:var(--faint);white-space:nowrap}
+.pv-it.k-line-ev .pv-t{font-weight:700;color:var(--cv)}
+.pv-it.k-line-opt .pv-t{color:var(--muted);font-style:italic}
+.pv-it.k-line-off .pv-t{color:var(--warn);font-weight:600}
+.pv-it.todo .pv-k{color:var(--accent)}
+.pv-it.todo.done .pv-t{color:var(--faint);text-decoration:line-through}
+.pv-none{font-size:12.5px;color:var(--faint);padding:4px 0}
+@media (max-width:640px){.pv-it{grid-template-columns:1fr}.pv-r{margin-left:0}}
+.pv-cal{border:1px solid var(--line);border-radius:10px;overflow:hidden;overflow-x:auto}
+.pc-dows,.pc-wk{display:grid;grid-template-columns:repeat(7,minmax(96px,1fr));min-width:672px}
+.pc-dows div{font-size:11.5px;font-weight:600;color:var(--faint);padding:6px 8px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.pc-wk{border-bottom:1px solid var(--line)}
+.pc-wk:last-child{border-bottom:0}
+.pc-d{min-height:64px;padding:4px 5px 6px;border-right:1px solid var(--line-soft);display:flex;flex-direction:column;gap:3px;min-width:0}
+.pc-d:nth-child(7){border-right:0}
+.pc-d.we{background:var(--sunk)}
+.pc-d.today{box-shadow:inset 0 2px 0 var(--accent)}
+.pc-n{font-family:var(--f-mono);font-size:11.5px;font-weight:600}
+.pc-n .m{color:var(--accent);margin-right:3px}
+.pc-e{font-size:11px;line-height:1.3;border-radius:4px;padding:2px 5px;overflow-wrap:anywhere}
+.pc-e.todo{background:var(--accent-soft);color:var(--accent)}
+.pc-e.todo.done{color:var(--faint);text-decoration:line-through}
+.k-off{background:var(--warn-soft);color:var(--warn);border:1px solid #F0C9A8}
+.pg-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--muted)}
+.pg-legend span{display:inline-flex;align-items:center;gap:6px}
+.pg-legend .sw{width:14px;height:10px;border-radius:2px}
+
+
+@media (max-width:860px){
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .step-head{grid-template-columns:minmax(0,1fr)}
+  .st-when{text-align:left}
+  .today{margin-left:0}
+}
+@media (prefers-reduced-motion:no-preference){.body{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(-3px)}to{opacity:1;transform:none}}}
+</style>
+
+</head><body>
+<div class="wrap">
+  <header>
+    <h1>MBM 세션 준비표</h1>
+    <p class="lede">11월 MY · PH 세미나 일정과 사람별 준비를 한 곳에서 봅니다. 위에서 이름을 누르면 그 사람 기준으로 바뀝니다. <span class="upd" id="upd"></span></p>
+    <div class="news" id="news"></div>
+  </header>
+
+  <div class="whobar" role="group" aria-label="누구 기준으로 볼지">
+    <span class="lbl">누구 기준으로 볼까요</span>
+    <span class="seg" id="who">
+      <button type="button" data-w="all" aria-pressed="true">전체</button>
+      <button type="button" data-w="규완" aria-pressed="false">규완</button>
+      <button type="button" data-w="승완" aria-pressed="false">승완</button>
+      <button type="button" data-w="민영" aria-pressed="false">민영</button>
+      <button type="button" data-w="현택" aria-pressed="false">현택</button>
+      <button type="button" data-w="승규" aria-pressed="false">승규</button>
+    </span>
+    <span class="who-note" id="who-note"></span>
+  </div>
+
+  <section class="pv" id="pv" hidden aria-labelledby="pv-title">
+    <div class="pv-top"><h2 id="pv-title"></h2>
+      <span class="seg" id="pv-view"><button type="button" data-v="step" aria-pressed="true">Step</button><button type="button" data-v="cal" aria-pressed="false">캘린더</button></span></div>
+    <p class="pv-note">아래 인원별 일정과 할 일(기한이 있는 항목)로 채워집니다. 세미나 이후 일정은 넣지 않았습니다.</p>
+    <div id="pv-body"></div>
+  </section>
+
+  <section class="ppl" aria-labelledby="ppl-h">
+    <h2 id="ppl-h">11월 MY · PH 세미나 일정 · 인원 <span class="draft">초안 · 일부 진행 안 될 수 있고 일정 변동 가능</span></h2>
+    <div class="evt-wrap"><table class="evt">
+      <thead><tr><th>일정</th><th>지역</th><th>행사</th><th>주요 참석 인원</th></tr></thead>
+      <tbody id="evt-body"></tbody>
+    </table></div>
+    <div class="ppl-head">
+      <h3>인원별 일정 <span id="pg-sub">11/14 ~ 11/27</span></h3>
+    </div>
+    <div class="pg-scroll"><div class="pg" id="pg"></div></div>
+    <div class="pg-legend">
+      <span><i class="sw k-go"></i>이동</span><span><i class="sw k-prep"></i>준비</span><span><i class="sw k-ev"></i>세미나</span>
+      <span><i class="sw k-fu"></i>팔로업</span><span><i class="sw k-opt"></i>필요 시 · 미정</span>
+    </div>
+    <div class="todo" id="todo">
+      <div class="todo-h"><h3 id="todo-title">할 일 · 메모</h3><span class="todo-st" id="todo-st">불러오는 중…</span></div>
+      <div id="todo-list"></div>
+    </div>
+  </section>
+
+  <div class="mine-h plan-only">
+    <h2 id="plan-h2">규완 준비 <span>메인 발표자료</span></h2>
+    <p class="lede" id="plan-lede">11/17 말레이시아 Civil NX 교량 세미나의 <b>메인 발표 하나</b>만 준비합니다. 흐름은 <b>왜 CIVIL NX with Hyper-S</b> → <b>이번 릴리스 신규 기능</b> → <b>NX Bridge 소개</b> → 마무리. 아래는 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일과 정할 것입니다.</p>
+  </div>
+
+  <div class="bar plan-only" role="group" aria-label="세미나 날짜">
+    <div><label class="lbl" for="dday" id="dday-lbl">교량 세미나 D-day</label><input type="date" id="dday" value="2026-11-17"></div>
+    <div><span class="lbl">화면</span>
+      <span class="seg" id="view">
+        <button type="button" data-v="step" aria-pressed="true">Step</button>
+        <button type="button" data-v="cal" aria-pressed="false">캘린더</button>
+      </span>
+    </div>
+    <div class="today" id="today"></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--nx)"></i><span id="lg-main">메인 발표 준비</span></span>
+      <span><i class="sw" style="background:var(--muted)"></i>출장</span>
+      <span><i class="sw" style="outline:1.5px dashed var(--muted);background:transparent"></i>현지 영업 준비 · 확인만</span>
+      <span><i class="sw" style="background:var(--decide)"></i>정해야 되는 것</span>
+      <i class="sep" aria-hidden="true"></i>
+      <span><b class="tag P">기획</b>판단·리서치, 번복 가능</span>
+      <span><b class="tag S">단건</b>한 번에 끝남</span>
+      <span><b class="tag R">반복</b>검토·수정 반복</span>
+      <span><b class="tag E">외부</b>상대 응답에 좌우</span>
+      <span><b class="tag X">돌발</b>누락·미이행 대응</span>
+    </div>
+  </div>
+
+
+
+
+  <section class="cons mine-only" aria-labelledby="cons-h">
+    <h2 id="cons-h">고려사항 <span>지금 일정에는 넣지 않고, 필요할 때 꺼내 씁니다</span></h2>
+    <div class="cons-b">
+      <div><h4>설문</h4>
+        <ul>
+          <li>받을 내용: 사용 설계기준, 주로 쓰는 거더 타입, 다음에 원하는 교량 형식, 발표에서 가장 도움이 된 부분</li>
+          <li>방식: 세션 직후 QR로 받고 2~3분 응답 시간을 확보</li>
+        </ul></div>
+    </div>
+  </section>
+
+
+  <div class="tl plan-only" id="tl"></div>
+  <div class="cal plan-only" id="cal" hidden></div>
+
+  <p class="foot mine-only">NX Bridge는 11월 출시 기준입니다. 신규 업데이트 내용은 10/16 기획팀 킥오프에서 설명을 듣는 것으로 잡았습니다. 기한은 주말·한국 공휴일이면 직전 영업일로 당기고, 현지 공휴일이 끼면 해당 Step에 표시합니다. 세부 단계의 흐린 기한은 상위 업무 기한을 따릅니다.</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* 업무 유형: P 기획 · S 단건 · R 반복 · E 외부 · X 돌발
+   업무: st = 시작(D 기준 일수), d = 마감, dep = 선행 업무 id. Step은 마감일이 속한 구간으로 자동 배정.
+   세부 단계(s)는 상위 업무의 기간 · 담당을 따름(o가 있으면 그 담당). x = 주의/메모 */
+const TY={P:"기획",S:"단건",R:"반복",E:"외부",X:"돌발"};
+
+let STEPS=[
+{ id:"s0", title:"구성안 · 기획팀 킥오프", from:-35, to:-30, lab:"5주 전",
+  note:"<b>확정 원칙:</b> 11/17 말레이시아 교량 세미나의 메인 발표 하나만 준비합니다. 구성안을 먼저 끝내야 10/16 기획팀 킥오프에서 자료를 요청할 수 있습니다.",
+  decide:[]},
+{ id:"s1", title:"초안", from:-29, to:-22, lab:"4주 전", decide:[]},
+{ id:"s2", title:"자료 받기 · 완성", from:-21, to:-7, lab:"3~2주 전",
+  decide:[]},
+{ id:"s3", title:"리허설", from:-6, to:-2, lab:"1주 전",
+  decide:[]},
+{ id:"s4", title:"행사 전날 · 현장 세팅", from:-1, to:-1, lab:"D-1",
+  decide:[]},
+{ id:"s5", title:"행사 당일", from:0, to:0, lab:"D-day", decide:[]}
+];
+
+let TASKS=[
+{id:"p0",k:"nx",t:"신규 업데이트 사전 파악 (있는 자료로)",o:"본인",st:-35,d:-33,ty:"P",s:[
+  {t:"릴리스 노트 · 2026 H2 개발항목 · 기존 발표자료 훑기",ty:"S"},
+  {t:"기획팀에 물어볼 질문 목록 (확인할 것 5건)",ty:"S",x:"10/16 킥오프에서 확인",xi:1}]},
+{id:"p1",k:"nx",t:"메인 발표 구성안",o:"본인",st:-35,d:-33,ty:"P",s:[
+  {t:"흐름 확정: 왜 CIVIL NX with Hyper-S → 신규 기능 → NX Bridge → 마무리",ty:"P",x:"PPT v0.4 기준",xi:1},
+  {t:"장별 필요 자료 목록 (= 기획팀 요청 목록)",ty:"S"},
+  {t:"데모 시나리오 (교량 예제 · 순서 · 라이브/녹화)",ty:"P"}]},
+{id:"p2",k:"nx",t:"기획팀 킥오프 · 자료 요청",o:"본인 · 기획팀",st:-32,d:-32,ty:"E",dep:["p0","p1"],s:[
+  {t:"구성안 공유, 요청 자료 · 담당 · 기한 합의",ty:"E",x:"데모 영상 최우선",xi:1},
+  {t:"신규 업데이트 설명 듣기 · 기본 / Hyper-S 기능 구분",ty:"E"},
+  {t:"NX Bridge 11월 출시 범위 · 라이선스 조건 확인",ty:"E"},
+  {t:"midas Civil 모델 호환 범위 · 시간 단축 수치 근거 확인",ty:"E"},
+  {t:"시연용 빌드 · 해외 인증 테스트 일정",ty:"E"},
+  {t:"회의록 공유",ty:"S"}]},
+{id:"p3",k:"nx",t:"아젠다에 발표 반영",o:"본인 → 현지 영업",st:-32,d:-32,ty:"S",dep:["p1"],s:[
+  {t:"발표 제목 · 한 줄 소개 · 시간 전달",ty:"S"}]},
+{id:"p4",k:"nx",t:"발표자료 초안 (전체)",o:"본인",st:-31,d:-24,ty:"R",dep:["p2"],s:[
+  {t:"v0.4 뼈대에 킥오프 내용 반영",ty:"S"},
+  {t:"기획팀 자료가 들어갈 자리 표시",ty:"S"}]},
+{id:"p5",k:"nx",t:"Hyper-S 설득 논리 (파트 1)",o:"본인",st:-29,d:-20,ty:"P",dep:["p2"],s:[
+  {t:"이번 출시 Hyper-S 추가 기능 정리 (선택적 재해석 등)",ty:"S"},
+  {t:"고객 업무 시간 기준으로 '왜 Hyper-S' 정리",ty:"P",x:"SG · MY 업셀 2건이 비용 정당화 실패로 끝남"}]},
+{id:"m1",k:"cm",t:"출장 준비",o:"본인",st:-29,d:-22,ty:"S",s:[
+  {t:"출장 품의",ty:"S"},{t:"항공 · 숙박",ty:"S"}]},
+{id:"p6",k:"nx",t:"기획팀 자료 마감 · 검수",o:"본인 · 기획팀",st:-21,d:-20,ty:"R",dep:["p2"],s:[
+  {t:"영문 UI · 데모 영상 길이 · 해상도 · 오프라인 재생",ty:"S"},
+  {t:"외부 노출 금지 정보 확인",ty:"R",x:"한국어 메뉴 · 국내 프로젝트명 · 개발 중 메시지"},
+  {t:"빠진 자료 대안 즉시 결정",ty:"X"}]},
+{id:"p7",k:"nx",t:"발표자료 완성",o:"본인",st:-19,d:-10,ty:"R",dep:["p4","p5","p6"],s:[
+  {t:"기획팀 자료 · Hyper-S 논리 반영",ty:"S"},
+  {t:"영문 스크립트",ty:"R"},
+  {t:"예상 질문 대비 메모",ty:"P",x:"출시일 · Eurocode · CIVIL NX 없이 사용 · 기존 파일 호환",xi:1},
+  {t:"기획팀 사실관계 검토",o:"기획팀",ty:"E"}]},
+{id:"p8",k:"nx",role:"fb",t:"시연 환경 확보",o:"준비 현지 영업 · 확인 본인",st:-19,d:-7,ty:"E",dep:["p2"],s:[
+  {t:"시연용 빌드 · 라이선스가 들어왔는지",ty:"S"},
+  {t:"해외 라이선스 인증 테스트 결과 확인",ty:"X",x:"반드시 사전 테스트"}]},
+{id:"m4",k:"nx",t:"메인 발표 리허설",o:"본인",st:-6,d:-5,ty:"R",dep:["p7","p8"],s:[
+  {t:"처음부터 끝까지 시간 측정",ty:"R"},
+  {t:"까다로운 질문 대비 롤플레이",ty:"R"},
+  {t:"오프라인 백업 영상 확인",ty:"S"}]},
+{id:"m5",k:"nx",t:"시연 PC 현장 테스트",o:"본인",st:-1,d:-1,ty:"S",dep:["m4"],s:[
+  {t:"프로젝터 해상도 · 영상 소리",ty:"S"},
+  {t:"인터넷 · 라이선스 인증",ty:"X"}]},
+{id:"m6",k:"nx",t:"메인 발표",o:"본인",st:0,d:0,ty:"S",dep:["m5"],s:[
+  {t:"왜 CIVIL NX with Hyper-S → 신규 기능 → NX Bridge → 마무리",ty:"S"}]},
+{id:"n16",k:"nx",t:"현장 질문 기록",o:"본인",st:0,d:0,ty:"S",s:[
+  {t:"질문 기록 (누가 · 무엇을)",ty:"S"},
+  {t:"당일 저녁 질문 메모 정리",ty:"S"}]}
+];
+let BYID=Object.fromEntries(TASKS.map(x=>[x.id,x]));
+const GW_STEPS=STEPS, GW_TASKS=TASKS;
+const PROC_MY_STEPS=[{"id": "q0", "title": "컨셉 · 스피커 · 대관", "from": -35, "to": -25, "lab": "4~5주 전", "note": "<b>오프라인 MBM 운영 프로세스 v3</b> 기준입니다. 승완이 11/17 말레이시아 교량 세미나를 주도합니다. 아직 시작한 작업이 없다고 보고 <b>10/13(화)부터</b> 잡았습니다. 컨셉이 정해져야 스피커 · 대관 · 랜딩이 움직입니다.", "decide": [{"k": "nx", "t": "MBM 컨셉 · 주제", "who": "승완 · 팀장", "n": "과거 MBM 피드백과 시장 트렌드 기준."}, {"k": "nx", "t": "메인 발표 시간 · 순서", "who": "승완 · 규완", "n": "외부 스피커 세션과 시간 배분."}]}, {"id": "q1", "title": "HubSpot 세팅 · 홍보 시작", "from": -24, "to": -15, "lab": "3주 전", "decide": []}, {"id": "q2", "title": "제작물 · 라이선스 · 스피커 자료", "from": -14, "to": -6, "lab": "1~2주 전", "decide": []}, {"id": "q3", "title": "물품 발송 · 사회 준비", "from": -5, "to": -2, "lab": "1주 전", "decide": []}, {"id": "q4", "title": "행사 전날 · 현장 세팅", "from": -1, "to": -1, "lab": "D-1", "decide": []}, {"id": "q5", "title": "행사 당일", "from": 0, "to": 0, "lab": "D-day", "decide": []}];
+const PROC_MY_TASKS=[{"id": "a1", "k": "nx", "t": "MBM 컨셉 · 주제 확정", "o": "승완", "st": -35, "d": -33, "ty": "P", "s": [{"t": "과거 MBM 피드백 · 시장 트렌드 리서치", "ty": "P"}, {"t": "주제 초안 · 내부 검토", "ty": "R", "x": "번복되면 랜딩 · 스피커가 다시 움직임"}, {"t": "확정 · 관련 부서 공유", "ty": "S", "x": "아젠다에 규완 메인 발표(CIVIL NX · NX Bridge) 포함", "xi": 1}]}, {"id": "a2", "k": "nx", "t": "스피커 선정 · 컨택", "o": "승완", "st": -32, "d": -28, "ty": "P", "s": [{"t": "분야별 후보 리서치 (LinkedIn · 네트워크)", "ty": "P"}, {"t": "적합성 내부 검토 → 확정 · 보고", "ty": "P"}, {"t": "초기 컨택 (이메일 · 전화 · 왓츠앱)", "ty": "E"}, {"t": "회신 대기 · 리마인더", "ty": "X", "x": "무응답이면 후보 교체"}], "dep": ["a1"]}, {"id": "a3", "k": "nx", "t": "장소 대관", "o": "승완", "st": -32, "d": -28, "ty": "R", "s": [{"t": "장소 모색 · 가격 비교", "ty": "R"}, {"t": "조건 합의 · 견적서", "ty": "R"}, {"t": "신규 거래처 등록 품의 (사업자등록증 · 통장사본)", "ty": "S", "x": "홍팀장님 결재 · 재무팀 신희원 합의"}, {"t": "지출품의서", "ty": "S", "x": "이체가 자금집행일 전이면 신희원님과 합의"}, {"t": "참석자 초과 시 조건 (추가금 · 추가 세팅)", "ty": "S"}], "dep": ["a1"]}, {"id": "a4", "k": "nx", "t": "CPD 신청 · 등록", "o": "승완", "st": -30, "d": -26, "ty": "R", "s": [{"t": "IEM에 CPD Point 신청 문의", "ty": "E"}, {"t": "CPD 등록 절차 진행", "ty": "S"}, {"t": "Format for List of Speakers · TP Form 1(F) · Credit Card Payment Template", "ty": "S"}, {"t": "승인 확인 (CPD Approval Letter · Reference Number)", "ty": "S", "x": "Reference Number는 행사 후 Certificate에 필요"}], "dep": ["a2"]}, {"id": "a5", "k": "nx", "t": "랜딩 콘텐츠 기획", "o": "승완", "st": -32, "d": -28, "ty": "P", "s": [{"t": "구성 · 카피 작성", "ty": "P"}, {"t": "메인 발표 제목 · 소개 반영", "ty": "E", "x": "10/16 기획팀 킥오프 후 규완이 전달", "xi": 1}, {"t": "내부 검토 · 수정", "ty": "R", "x": "검토자 피드백에 따라 여러 번 수정"}], "dep": ["a1"]}, {"id": "b1", "k": "nx", "t": "Speaker Confirmation · 주제 · 프로필", "o": "승완", "st": -28, "d": -21, "ty": "E", "s": [{"t": "확정 통보 + 서류 기한 (통장사본 · 신분증)", "ty": "E"}, {"t": "누락 서류 재요청", "ty": "X", "x": "스피커마다 누락이 반복됨"}, {"t": "발표 주제 협의", "ty": "E"}, {"t": "프로필 · 사진 수령", "ty": "E"}], "dep": ["a2"]}, {"id": "b2", "k": "nx", "t": "HubSpot 세팅", "o": "승완", "st": -28, "d": -21, "ty": "S", "s": [{"t": "MBM Object 생성", "ty": "S"}, {"t": "등록 Form · Check-in Form (QR 코드)", "ty": "S"}, {"t": "Segment: 발송 · 등록자 · 참석자", "ty": "S"}, {"t": "Landing Page 제작 (Key Image · 본문 · Form · Campaign 연동)", "ty": "S"}, {"t": "Tracking URL: 메일 · Whatsapp · LinkedIn · 광고", "ty": "S"}], "dep": ["a5"]}, {"id": "b3", "k": "nx", "t": "eDM 5종", "o": "승완", "st": -24, "d": -21, "ty": "S", "s": [{"t": "1차 · 2차 · 3차 eDM", "ty": "S"}, {"t": "D-1 Reminder", "ty": "S"}, {"t": "등록 완료 메일 (Automation 연동)", "ty": "S"}, {"t": "Monday로 글마포에 발송 접수", "ty": "S"}], "dep": ["b2"]}, {"id": "b4", "k": "nx", "t": "홍보 · 광고", "o": "승완", "st": -21, "d": -7, "ty": "R", "s": [{"t": "Whatsapp 홍보", "ty": "R", "x": "무작위 발송은 계정 차단 위험"}, {"t": "LinkedIn 포스팅", "ty": "S"}, {"t": "개인 이메일 (집객 · 미팅 제안)", "ty": "R"}, {"t": "LinkedIn 광고 (글마포와 유형 협의 · Monday 접수)", "ty": "R"}, {"t": "MGS 광고 (해당 시)", "ty": "R", "x": "지반 협회라 교량 세미나에 맞는지 판단"}], "dep": ["b2"]}, {"id": "b5", "k": "nx", "t": "X-배너", "o": "승완", "st": -24, "d": -21, "ty": "R", "s": [{"t": "Figma 디자인 · 내부 검토", "ty": "R"}, {"t": "디자인팀 인쇄 발주 (수령일 확인)", "ty": "S"}, {"t": "그룹웨어 인쇄물 신청서 결재", "ty": "S"}], "dep": ["a1"]}, {"id": "c1", "k": "nx", "t": "스피커 발표 자료 수령", "o": "승완", "st": -14, "d": -7, "ty": "X", "s": [{"t": "자료 요청", "ty": "E"}, {"t": "마감 리마인더 1차 · 2차", "ty": "X", "x": "마감이 지나도 안 주는 경우 많음"}, {"t": "포맷 · 내용 검토 · 수정 요청", "ty": "R"}, {"t": "최종 자료 확정 · 저장", "ty": "S"}], "dep": ["b1"]}, {"id": "c2", "k": "nx", "t": "프로모션지 · 명찰", "o": "승완", "st": -14, "d": -7, "ty": "R", "s": [{"t": "프로모션지 디자인 (Canva) · 시험 출력 · 인쇄", "ty": "R", "x": "오피스키퍼 워터마크 해제 신청"}, {"t": "등록자 Segment 추출 · 유형별 구분", "ty": "S", "x": "글마포 Export 요청 · 정보보호포털 운영데이터 사용 신청"}, {"t": "명찰 디자인 · 인쇄 · 케이스 조립", "ty": "R", "x": "스피커 · 스태프 명찰 포함, 유형별 여분 5~10장"}], "dep": ["b2"]}, {"id": "c3", "k": "nx", "t": "트레이닝 라이선스", "o": "승완", "st": -17, "d": -7, "ty": "E", "s": [{"t": "MAS 계정 신청 · 생성", "ty": "E"}, {"t": "Trial 라이선스 생성 · 승인", "ty": "E", "x": "직속 리더 · 지선님 승인"}, {"t": "등록자 이메일 취합 · Invite · Assign", "ty": "R", "x": "미등록자는 사용 불가 안내"}, {"t": "Members 가입 확인 · 미가입자 재연락", "ty": "R"}], "dep": ["b2"]}, {"id": "c4", "k": "nx", "t": "메인 발표 시연 환경", "o": "승완", "st": -19, "d": -7, "ty": "E", "s": [{"t": "시연용 빌드 · 라이선스", "ty": "S"}, {"t": "해외 라이선스 인증 테스트", "ty": "X", "x": "결과를 규완과 공유"}]}, {"id": "d1", "k": "nx", "t": "행사 물품 준비 · 발송", "o": "승완", "st": -10, "d": -5, "ty": "S", "s": [{"t": "수건 (김현 프로님 재고 확인)", "ty": "S"}, {"t": "X-배너 · 스탠드 · 명찰 · 프로모션지 · 종이봉투", "ty": "S"}, {"t": "카탈로그 수량 (지선님께 팀즈로)", "ty": "S"}, {"t": "지선님께 발송 요청 (발송 양식)", "ty": "S"}, {"t": "대관 장소 도착 확인", "ty": "S"}], "dep": ["b5", "c2"]}, {"id": "d2", "k": "nx", "t": "사회 준비", "o": "승완", "st": -5, "d": -2, "ty": "S", "s": [{"t": "사회 대본", "ty": "S"}, {"t": "오프닝 · 클로징 PPT", "ty": "S"}, {"t": "연습", "ty": "S"}], "dep": ["a1"]}, {"id": "e1", "k": "nx", "t": "전날 현장 세팅", "o": "승완", "st": -1, "d": -1, "ty": "S", "s": [{"t": "전날 세팅 가능 여부", "ty": "S", "x": "불가하면 당일 아침"}, {"t": "물품 운반 · X-배너 · 봉투 · 명찰 세팅", "ty": "S"}, {"t": "안내 · 주차 데스크 · 화장실 위치", "ty": "S"}, {"t": "스피커 · 마이크 · 포디움 · 프로젝터 · 멀티탭", "ty": "S"}, {"t": "비상 연락망", "ty": "S"}], "dep": ["d1"]}, {"id": "e2", "k": "nx", "t": "리마인드 콜 · 메시지", "o": "승완", "st": -1, "d": -1, "ty": "R", "s": [{"t": "전화 안 받으면 문자로 참석 확인", "ty": "R"}], "dep": ["b3"]}, {"id": "f1", "k": "nx", "t": "현장 운영", "o": "승완", "st": 0, "d": 0, "ty": "S", "s": [{"t": "QR 체크인 · 명찰 배부", "ty": "S"}, {"t": "다과 체크", "ty": "S"}, {"t": "행사 사회", "ty": "S"}], "dep": ["e1", "d2"]}];
+const PROC_PH_STEPS=[{"id": "q0", "title": "컨셉 · 스피커 · 대관", "from": -35, "to": -25, "lab": "4~5주 전", "note": "<b>오프라인 MBM 운영 프로세스 v3</b> 기준입니다. 민영이 세부 · 다바오 Gen NX 세미나를 주도합니다. <b>10/15(목)까지 예비군</b>이라 그 이후로 잡았습니다. 컨셉이 정해져야 스피커 · 대관 · 랜딩이 움직입니다.", "decide": [{"k": "nx", "t": "MBM 컨셉 · 주제", "who": "민영 · 팀장", "n": "과거 MBM 피드백과 시장 트렌드 기준."}]}, {"id": "q1", "title": "HubSpot 세팅 · 홍보 시작", "from": -24, "to": -15, "lab": "3주 전", "decide": []}, {"id": "q2", "title": "제작물 · 라이선스 · 스피커 자료", "from": -14, "to": -6, "lab": "1~2주 전", "decide": []}, {"id": "q3", "title": "물품 발송 · 사회 준비", "from": -5, "to": -2, "lab": "1주 전", "decide": []}, {"id": "q4", "title": "행사 전날 · 현장 세팅", "from": -1, "to": -1, "lab": "D-1", "decide": []}, {"id": "q5", "title": "행사 당일", "from": 0, "to": 0, "lab": "D-day", "decide": []}, {"id": "q6", "title": "다바오 세미나", "from": 1, "to": 3, "lab": "11/25 – 11/26", "decide": []}];
+const PROC_PH_TASKS=[{"id": "a1", "k": "nx", "t": "MBM 컨셉 · 주제 확정", "o": "민영", "st": -35, "d": -33, "ty": "P", "s": [{"t": "과거 MBM 피드백 · 시장 트렌드 리서치", "ty": "P"}, {"t": "주제 초안 · 내부 검토", "ty": "R", "x": "번복되면 랜딩 · 스피커가 다시 움직임"}, {"t": "확정 · 관련 부서 공유", "ty": "S", "x": "세부 · 다바오 같은 주제로 갈지 함께 결정", "xi": 1}]}, {"id": "a2", "k": "nx", "t": "스피커 선정 · 컨택", "o": "민영", "st": -32, "d": -28, "ty": "P", "s": [{"t": "분야별 후보 리서치 (LinkedIn · 네트워크)", "ty": "P"}, {"t": "적합성 내부 검토 → 확정 · 보고", "ty": "P"}, {"t": "초기 컨택 (이메일 · 전화 · 왓츠앱)", "ty": "E"}, {"t": "회신 대기 · 리마인더", "ty": "X", "x": "무응답이면 후보 교체"}], "dep": ["a1"]}, {"id": "a3", "k": "nx", "t": "장소 대관 (세부 · 다바오)", "o": "민영", "st": -32, "d": -28, "ty": "R", "s": [{"t": "장소 모색 · 가격 비교", "ty": "R"}, {"t": "조건 합의 · 견적서", "ty": "R"}, {"t": "신규 거래처 등록 품의 (사업자등록증 · 통장사본)", "ty": "S", "x": "홍팀장님 결재 · 재무팀 신희원 합의"}, {"t": "지출품의서", "ty": "S", "x": "이체가 자금집행일 전이면 신희원님과 합의"}, {"t": "참석자 초과 시 조건 (추가금 · 추가 세팅)", "ty": "S"}], "dep": ["a1"]}, {"id": "a4", "k": "nx", "t": "CPD 신청 · 등록 (세부 · 다바오)", "o": "민영", "st": -30, "d": -26, "ty": "R", "s": [{"t": "PH 엔지니어링 협회 CPD 문의 (해당 시)", "ty": "E"}, {"t": "CPD 등록 절차 진행", "ty": "S"}], "dep": ["a2"]}, {"id": "a5", "k": "nx", "t": "랜딩 콘텐츠 기획", "o": "민영", "st": -32, "d": -28, "ty": "P", "s": [{"t": "구성 · 카피 작성", "ty": "P"}, {"t": "세부 · 다바오 일정 · 장소 함께 안내", "ty": "S"}, {"t": "내부 검토 · 수정", "ty": "R", "x": "검토자 피드백에 따라 여러 번 수정"}], "dep": ["a1"]}, {"id": "b1", "k": "nx", "t": "Speaker Confirmation · 주제 · 프로필", "o": "민영", "st": -28, "d": -21, "ty": "E", "s": [{"t": "확정 통보 + 서류 기한 (통장사본 · 신분증)", "ty": "E"}, {"t": "누락 서류 재요청", "ty": "X", "x": "스피커마다 누락이 반복됨"}, {"t": "발표 주제 협의", "ty": "E"}, {"t": "프로필 · 사진 수령", "ty": "E"}], "dep": ["a2"]}, {"id": "b2", "k": "nx", "t": "HubSpot 세팅", "o": "민영", "st": -28, "d": -21, "ty": "S", "s": [{"t": "MBM Object 생성", "ty": "S"}, {"t": "등록 Form · Check-in Form (QR 코드)", "ty": "S"}, {"t": "Segment: 발송 · 등록자 · 참석자", "ty": "S"}, {"t": "Landing Page 제작 (Key Image · 본문 · Form · Campaign 연동)", "ty": "S"}, {"t": "Tracking URL: 메일 · Whatsapp · LinkedIn · 광고", "ty": "S"}], "dep": ["a5"]}, {"id": "b3", "k": "nx", "t": "eDM 5종", "o": "민영", "st": -24, "d": -21, "ty": "S", "s": [{"t": "1차 · 2차 · 3차 eDM", "ty": "S"}, {"t": "D-1 Reminder", "ty": "S"}, {"t": "등록 완료 메일 (Automation 연동)", "ty": "S"}, {"t": "Monday로 글마포에 발송 접수", "ty": "S"}], "dep": ["b2"]}, {"id": "b4", "k": "nx", "t": "홍보 · 광고", "o": "민영", "st": -21, "d": -7, "ty": "R", "s": [{"t": "Whatsapp 홍보", "ty": "R", "x": "무작위 발송은 계정 차단 위험"}, {"t": "LinkedIn 포스팅", "ty": "S"}, {"t": "개인 이메일 (집객 · 미팅 제안)", "ty": "R"}, {"t": "LinkedIn 광고 (글마포와 유형 협의 · Monday 접수)", "ty": "R"}], "dep": ["b2"]}, {"id": "b5", "k": "nx", "t": "X-배너 (세부 · 다바오)", "o": "민영", "st": -24, "d": -21, "ty": "R", "s": [{"t": "Figma 디자인 · 내부 검토", "ty": "R"}, {"t": "디자인팀 인쇄 발주 (수령일 확인)", "ty": "S"}, {"t": "그룹웨어 인쇄물 신청서 결재", "ty": "S"}], "dep": ["a1"]}, {"id": "c1", "k": "nx", "t": "스피커 발표 자료 수령", "o": "민영", "st": -14, "d": -7, "ty": "X", "s": [{"t": "자료 요청", "ty": "E"}, {"t": "마감 리마인더 1차 · 2차", "ty": "X", "x": "마감이 지나도 안 주는 경우 많음"}, {"t": "포맷 · 내용 검토 · 수정 요청", "ty": "R"}, {"t": "최종 자료 확정 · 저장", "ty": "S"}], "dep": ["b1"]}, {"id": "c2", "k": "nx", "t": "프로모션지 · 명찰 (세부 · 다바오)", "o": "민영", "st": -14, "d": -7, "ty": "R", "s": [{"t": "프로모션지 디자인 (Canva) · 시험 출력 · 인쇄", "ty": "R", "x": "오피스키퍼 워터마크 해제 신청"}, {"t": "등록자 Segment 추출 · 유형별 구분", "ty": "S", "x": "글마포 Export 요청 · 정보보호포털 운영데이터 사용 신청"}, {"t": "명찰 디자인 · 인쇄 · 케이스 조립", "ty": "R", "x": "스피커 · 스태프 명찰 포함, 유형별 여분 5~10장"}], "dep": ["b2"]}, {"id": "c3", "k": "nx", "t": "트레이닝 라이선스", "o": "민영", "st": -17, "d": -7, "ty": "E", "s": [{"t": "MAS 계정 신청 · 생성", "ty": "E"}, {"t": "Trial 라이선스 생성 · 승인", "ty": "E", "x": "직속 리더 · 지선님 승인"}, {"t": "등록자 이메일 취합 · Invite · Assign", "ty": "R", "x": "미등록자는 사용 불가 안내"}, {"t": "Members 가입 확인 · 미가입자 재연락", "ty": "R"}], "dep": ["b2"]}, {"id": "d1", "k": "nx", "t": "행사 물품 준비 · 발송 (세부 · 다바오)", "o": "민영", "st": -10, "d": -5, "ty": "S", "s": [{"t": "수건 (김현 프로님 재고 확인)", "ty": "S"}, {"t": "X-배너 · 스탠드 · 명찰 · 프로모션지 · 종이봉투", "ty": "S"}, {"t": "카탈로그 수량 (지선님께 팀즈로)", "ty": "S"}, {"t": "지선님께 발송 요청 (발송 양식)", "ty": "S"}, {"t": "대관 장소 도착 확인", "ty": "S"}], "dep": ["b5", "c2"]}, {"id": "d2", "k": "nx", "t": "사회 준비", "o": "민영", "st": -5, "d": -2, "ty": "S", "s": [{"t": "사회 대본", "ty": "S"}, {"t": "오프닝 · 클로징 PPT", "ty": "S"}, {"t": "연습", "ty": "S"}], "dep": ["a1"]}, {"id": "e1", "k": "nx", "t": "전날 현장 세팅", "o": "민영", "st": -1, "d": -1, "ty": "S", "s": [{"t": "전날 세팅 가능 여부", "ty": "S", "x": "불가하면 당일 아침"}, {"t": "물품 운반 · X-배너 · 봉투 · 명찰 세팅", "ty": "S"}, {"t": "안내 · 주차 데스크 · 화장실 위치", "ty": "S"}, {"t": "스피커 · 마이크 · 포디움 · 프로젝터 · 멀티탭", "ty": "S"}, {"t": "비상 연락망", "ty": "S"}], "dep": ["d1"]}, {"id": "e2", "k": "nx", "t": "리마인드 콜 · 메시지", "o": "민영", "st": -1, "d": -1, "ty": "R", "s": [{"t": "전화 안 받으면 문자로 참석 확인", "ty": "R"}], "dep": ["b3"]}, {"id": "f1", "k": "nx", "t": "현장 운영", "o": "민영", "st": 0, "d": 0, "ty": "S", "s": [{"t": "QR 체크인 · 명찰 배부", "ty": "S"}, {"t": "다과 체크", "ty": "S"}, {"t": "행사 사회", "ty": "S"}], "dep": ["e1", "d2"]}, {"id": "g1", "k": "nx", "t": "다바오 이동 · 전날 세팅", "o": "민영", "abs": "2026-11-25", "st": 2, "d": 2, "ty": "S", "s": [{"t": "물품 운반 · 세팅", "ty": "S"}, {"t": "프로젝터 · 마이크 확인", "ty": "S"}, {"t": "리마인드 메시지", "ty": "R"}], "dep": ["f1"]}, {"id": "g2", "k": "nx", "t": "다바오 현장 운영", "o": "민영", "abs": "2026-11-26", "st": 3, "d": 3, "ty": "S", "s": [{"t": "QR 체크인 · 명찰 · 다과 · 사회", "ty": "S"}], "dep": ["g1"]}];
+
+const DATA={
+  "규완":{d:"2026-11-17",start:"2026-10-13",steps:GW_STEPS,tasks:GW_TASKS,lbl:"교량 세미나 D-day",
+    h2:'규완 준비 <span>메인 발표자료</span>',
+    lede:'11/17 말레이시아 Civil NX 교량 세미나의 <b>메인 발표 하나</b>만 준비합니다. 흐름은 <b>왜 CIVIL NX with Hyper-S</b> → <b>이번 릴리스 신규 기능</b> → <b>NX Bridge 소개</b> → 마무리. 아래는 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일과 정할 것입니다.'},
+  "승완":{d:"2026-11-17",start:"2026-10-13",steps:PROC_MY_STEPS,tasks:PROC_MY_TASKS,lbl:"교량 세미나 D-day",
+    h2:'승완 준비 <span>말레이시아 Civil NX 교량 세미나 주도 · 11/17</span>',
+    lede:'「오프라인 MBM 운영 프로세스 v3」대로 세미나 날짜(D)에서 거꾸로 잡은 Step별 할 일입니다. 행사 후 팔로우업은 넣지 않았습니다.'},
+  "민영":{d:"2026-11-23",start:"2026-10-16",steps:PROC_PH_STEPS,tasks:PROC_PH_TASKS,lbl:"세부 세미나 D-day",
+    h2:'민영 준비 <span>필리핀 Gen NX 세미나 주도 · 세부 11/23 또는 24 · 다바오 11/26</span>',
+    lede:'「오프라인 MBM 운영 프로세스 v3」대로 세부 세미나(D)에서 거꾸로 잡은 Step별 할 일이고, 다바오는 마지막 Step으로 이어 붙였습니다. 10/15(목)까지 예비군이라 10/16(금)부터 잡았습니다. 세부 날짜가 24일로 정해지면 위 D-day만 바꾸면 됩니다.'}
+};
+let DSNAME="규완", REG="MY";
+const holOK=h=>h.w.includes("KR")||h.w.includes(REG);
+function absFix(){ TASKS.forEach(x=>{ if(x.abs){ const o=Math.round((parse(x.abs)-D)/864e5); x.st=o; x.d=o; } }); }
+function useDataset(name){
+  const ds=DATA[name]; if(!ds) return false;
+  DSNAME=name; REG=name==="민영"?"PH":"MY"; STEPS=ds.steps; TASKS=ds.tasks; BYID=Object.fromEntries(TASKS.map(x=>[x.id,x]));
+  PLAN_START=parse(ds.start); SCHED_D=null; closed.clear(); active=null;
+  document.getElementById("dday-lbl").textContent=ds.lbl;
+  document.getElementById("plan-h2").innerHTML=ds.h2;
+  document.getElementById("plan-lede").innerHTML=ds.lede;
+  document.getElementById("lg-main").textContent=name==="규완"?"메인 발표 준비":"세미나 준비";
+  let d=ds.d; try{d=localStorage.getItem("mbm-d-"+name)||d}catch(e){}
+  setD(d); return true;
+}
+
+const HOL=[
+  {d:"2026-10-09",n:"한글날",w:"KR"},{d:"2026-11-09",n:"Deepavali 대체공휴일",w:"MY"},
+  {d:"2026-12-25",n:"성탄절",w:"KR·MY"},{d:"2027-01-01",n:"신정",w:"KR·MY"}
+];
+const WD=["일","월","화","수","목","금","토"];
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const parse=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c)};
+const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const isOff=d=>d.getDay()===0||d.getDay()===6||HOL.some(h=>h.d===iso(d)&&h.w.includes("KR"));
+const back=d=>{let x=new Date(d);while(isOff(x))x=add(x,-1);return x};
+const fwd=d=>{let x=new Date(d);while(isOff(x))x=add(x,1);return x};
+const fmt=d=>(d.getMonth()+1)+"/"+String(d.getDate()).padStart(2,"0")+"("+WD[d.getDay()]+")";
+const md=d=>(d.getMonth()+1)+"/"+d.getDate();
+const rel=n=>n===0?"D-day":(n<0?"D"+n:"D+"+n);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let D=parse("2026-11-17"), active=null, TRACK="all", VIEW="step";
+const closed=new Set();
+const TODAY=(()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())})();
+
+let PLAN_START=parse("2026-10-13"); /* 실제 작업 시작일: 이전 날짜로 잡힌 업무는 이 날 이후로 민다 */
+let SCHED={}, SCHED_D=null;
+function schedule(){
+  if(SCHED_D===+D) return SCHED; SCHED={}; SCHED_D=+D;
+  const nb=d=>fwd(add(d,1));
+  const calc=x=>{ if(SCHED[x.id]) return; (x.dep||[]).forEach(id=>BYID[id]&&calc(BYID[id]));
+    const raw=n=>n>=-1;
+    let a = raw(x.st)?add(D,x.st): fwd(add(D,x.st));
+    let b = raw(x.d)?add(D,x.d): back(add(D,x.d));
+    const floor=fwd(PLAN_START); if(a<floor) a=floor; if(x.abs){a=parse(x.abs);b=parse(x.abs);}
+    (x.dep||[]).forEach(id=>{const p=SCHED[id]; if(p){const e=(p.b<D&&x.st>=0)?new Date(D):nb(p.b); if(x.st===0&&+p.b<+D) return; if(a<e) a=e;}});
+    let late=false; if(b<a){ b=a; late=true; }
+    SCHED[x.id]={a,b,late,over: x.d<0 && b>=D};
+  };
+  TASKS.forEach(calc);
+  return SCHED;
+}
+const startOf=x=>schedule()[x.id].a;
+const endOf=x=>schedule()[x.id].b;
+const when=x=>{const a=startOf(x),b=endOf(x);return +a===+b?fmt(b):fmt(a)+" – "+fmt(b)};
+const inTrack=x=>TRACK==="all"||TRACK===x.k||x.k==="cm";
+const stepOf=x=>STEPS.findIndex(s=>x.d>=s.from&&x.d<=s.to);
+const tasksOf=(i,k)=>TASKS.filter(x=>x.k===k&&!x.role&&stepOf(x)===i);
+const fbOf=i=>TASKS.filter(x=>x.role==="fb"&&inTrack(x)&&stepOf(x)===i);
+const TRK={nx:"발표",cv:"발표",cm:"출장"};
+function groupsOf(list){ const m=new Map(); list.forEach(x=>{const g=x.g||(DSNAME==="규완"?"메인 발표 준비":"세미나 준비"); if(!m.has(g)) m.set(g,[]); m.get(g).push(x);}); return [...m.entries()]; }
+const subCount=l=>l.reduce((t,x)=>t+(x.s?x.s.length:0),0);
+
+function span(s){ if(s.from===s.to){const a=s.from>=-1?add(D,s.from):back(add(D,s.from));return {a,b:a};}
+  if(s.from>=0) return {a:add(D,s.from),b:add(D,s.to)};
+  return {a:fwd(add(D,s.from)),b:back(add(D,s.to))}; }
+function state(s){const {a,b}=span(s); if(TODAY>b) return "past"; if(TODAY>=a) return "now"; return "next";}
+function currentIdx(){ let i=STEPS.findIndex(s=>state(s)==="now"); if(i<0) i=STEPS.findIndex(s=>state(s)==="next"); return i<0?STEPS.length-1:i; }
+
+function depLine(x){
+  if(!x.dep||!x.dep.length) return "";
+  return `<span class="dep">선행 ${x.dep.map(id=>{const p=BYID[id];return `<button type="button" class="dlink ${p.k}" data-step="${stepOf(p)}" title="Step ${stepOf(p)}로 이동">${esc(p.t)}</button>`}).join("")}</span>`;
+}
+function table(list,sid,grp,showTrk){
+  const body=list.map((x,i)=>{
+    const key=`${sid}-${grp}-${i}`, open=!closed.has(key), n=i+1, kids=x.s||[];
+    const head=`<tr class="p ${open?"open":""}"><td class="no">${n}</td>
+      <td class="t">${kids.length?`<button class="tog" type="button" data-k="${key}" aria-expanded="${open}"><span class="car">▶</span>${esc(x.t)} <span class="cnt">${kids.length}</span></button>`:`<span style="padding-left:18px">${esc(x.t)}</span>`}${showTrk?`<span class="trk ${x.k}">${TRK[x.k]}</span>`:""}${depLine(x)}</td>
+      <td class="ty"><b class="tag ${x.ty}">${TY[x.ty]}</b></td><td class="o">${esc(x.o)}</td>
+      <td class="d"><span class="r">${(()=>{const o=d=>Math.round((d-D)/864e5);const A=o(startOf(x)),B=o(endOf(x));return A===B?rel(B):rel(A)+"~"+rel(B).replace("D","")})()}</span>${when(x)}${schedule()[x.id].over?' <span class="chip hol">D-day 이후로 밀림</span>':""}</td></tr>`;
+    const subs=kids.map((c,j)=>`<tr class="c" ${open?"":"hidden"}><td class="no">${n}-${j+1}</td>
+        <td class="t">${esc(c.t)}${c.x?`<span class="x ${c.xi?"i":""}">${c.xi?"· ":"⚠ "}${esc(c.x)}</span>`:""}</td>
+        <td class="ty"><b class="tag ${c.ty}">${TY[c.ty]}</b></td><td class="o">${c.o?esc(c.o):`<span style="color:var(--faint)">〃</span>`}</td>
+        <td class="d inh">〃</td></tr>`).join("");
+    return head+subs;}).join("");
+  return `<div class="tbl"><table><thead><tr><th>#</th><th>${showTrk?"검토할 것":"해야 되는 것"}</th><th>유형</th><th>${showTrk?"작성 · 검토":"담당"}</th><th>기간 (시작 – 마감)</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function holChips(s){const {a,b}=span(s); return HOL.filter(h=>{const d=parse(h.d);return holOK(h)&&d>=a&&d<=b}).map(h=>`<span class="chip hol">${esc(h.w)} 휴일 ${fmt(parse(h.d))} ${esc(h.n)}</span>`).join("");}
+
+function renderSteps(){
+  const diff=Math.round((D-TODAY)/864e5);
+  document.getElementById("today").innerHTML=`오늘 ${fmt(TODAY)} · 세미나까지 <b>${diff>=0?"D-"+diff:"D+"+(-diff)}</b>`;
+  const anyDec=STEPS.some(s=>(s.decide||[]).filter(Boolean).length);
+  document.getElementById("tl").innerHTML=STEPS.map((s,i)=>{
+    const {a,b}=span(s), st=state(s), on=i===active;
+    const nx=TRACK!=="cv"?tasksOf(i,"nx"):[], cv=TRACK!=="nx"?tasksOf(i,"cv"):[], cm=tasksOf(i,"cm"), fb=fbOf(i), mine=nx.length+cv.length+cm.length;
+    const decs=s.decide.filter(q=>TRACK==="all"||q.k===TRACK);
+    const stChip= st==="now"?`<span class="chip state-now">지금 단계</span>`: st==="past"?`<span class="chip state-past">지남</span>`:"";
+    return `<section class="step ${on?"active":""} ${st}" id="${s.id}">
+      <span class="dot" aria-hidden="true"></span>
+      <button class="step-head" type="button" aria-expanded="${on}" aria-controls="${s.id}-b" data-i="${i}">
+        <span class="st-title"><span class="st-num">Step ${i}</span>${esc(s.title)}</span>
+        <span class="st-when"><span class="rel">${s.lab}</span>${s.from===s.to?fmt(a):fmt(a)+" – "+fmt(b)}</span>
+        <span class="st-meta">${stChip}
+          ${mine?`<span class="chip">직접 ${mine}</span>`:""}
+          ${fb.length?`<span class="chip fbk">피드백 ${fb.length}</span>`:""}
+          ${decs.length?`<span class="chip dc">결정 ${decs.length}</span>`:""}
+          ${holChips(s)}</span>
+      </button>
+      <div class="body" id="${s.id}-b">
+        ${s.note?`<p class="note">${s.note}</p>`:""}
+        <p class="cal-note" style="margin:0 0 12px">업무는 마감일이 속한 Step에 놓입니다. 시작이 앞 Step에 걸쳐 있으면 기간에 그대로 표시됩니다.</p>
+        <div class="cols" ${anyDec?"":'style="grid-template-columns:minmax(0,1fr)"'}>
+          <div style="min-width:0">
+            <h3 class="sec-h"><span>해야 되는 것</span><span><button type="button" data-all="open" data-s="${i}">모두 펼치기</button><button type="button" data-all="close" data-s="${i}">모두 접기</button></span></h3>
+            <h4 class="role-h">직접 할 일</h4>
+            ${TRACK!=="cv"&&nx.length?groupsOf(nx).map(([g,l],gi)=>`<div class="group nx"><div class="g-cap"><span>${esc(g)}</span></div>${table(l,s.id,"n"+gi)}</div>`).join(""):""}
+            ${TRACK!=="nx"&&cv.length?`<div class="group cv"><div class="g-cap"><span>CIVIL NX 업데이트 · 전환</span></div>${table(cv,s.id,"c")}</div>`:""}
+            ${cm.length?`<div class="group cm"><div class="g-cap"><span>출장</span></div>${table(cm,s.id,"m")}</div>`:""}
+            ${mine?"":`<div class="empty">이 단계에 마감되는 직접 할 일이 없습니다.</div>`}
+            ${fb.length?`<h4 class="role-h fb">피드백 줄 것 <span>현지 영업이 만들고, 본인은 검토해서 의견을 줍니다</span></h4><div class="group fbg">${table(fb,s.id,"f",true)}</div>`:""}
+          </div>
+          ${anyDec?`<div style="min-width:0">
+            <h3 class="sec-h"><span>정해야 되는 것</span></h3>
+            <div class="decide">${decs.length? decs.map(q=>`<div class="q ${q.k}"><div class="q-top"><span class="q-t"><span class="q-trk">${q.k==="nx"?"발표":"기타"}</span>${esc(q.t)}</span><span class="q-who">${esc(q.who)}</span></div>${q.n?`<div class="q-n">${esc(q.n)}</div>`:""}${q.opt?`<div class="q-opt"><b>→</b> ${esc(q.opt)}</div>`:""}</div>`).join(""):`<div class="q-none">이 단계에서 새로 정할 것은 없습니다. 앞 단계 결정대로 실행합니다.</div>`}</div>
+          </div>`:""}
+        </div>
+        <div class="nav"><button type="button" data-go="${i-1}" ${i===0?"disabled":""}>← 이전 Step</button><button type="button" data-go="${i+1}" ${i===STEPS.length-1?"disabled":""}>다음 Step →</button></div>
+      </div></section>`;}).join("");
+}
+
+/* ── 캘린더: 주 단위 행, 업무는 시작~마감 막대 ── */
+function renderCal(){
+  const box=document.getElementById("cal");
+  const list=TASKS.filter(inTrack).map(x=>({x,a:startOf(x),b:endOf(x)}));
+  const min=new Date(Math.min(...list.map(e=>e.a))), max=new Date(Math.max(...list.map(e=>e.b),D));
+  const start=add(min,-((min.getDay()+6)%7)), end=add(max,6-((max.getDay()+6)%7));
+  const stepStart={}; STEPS.forEach((s,i)=>{stepStart[iso(span(s).a)]=`Step ${i} · ${s.title}`});
+  const DOW=["월","화","수","목","금","토","일"];
+  let weeks="", ag="";
+  for(let w=new Date(start); w<=end; w=add(w,7)){
+    const we=add(w,6);
+    let head="";
+    for(let k=0;k<7;k++){ const d=add(w,k), id=iso(d), off=Math.round((d-D)/864e5), hol=HOL.filter(h=>h.d===id&&holOK(h));
+      const first=d.getDate()===1||+d===+start;
+      head+=`<div class="dh ${k>4?"we":""} ${+d===+TODAY?"today":""} ${off===0?"dday":""}" style="grid-column:${k+1}">
+        <div class="c-top"><span class="c-day">${first?`<span class="m">${d.getMonth()+1}월</span>`:""}${d.getDate()}</span><span class="c-rel">${rel(off)}</span></div>
+        ${off===0?`<div class="ddl">세미나 D-day</div>`:""}${hol.map(h=>`<div class="c-hol">${esc(h.w)} ${esc(h.n)}</div>`).join("")}
+        ${stepStart[id]?`<div class="c-step">${esc(stepStart[id])} 시작</div>`:""}</div>`; }
+    const rows=list.filter(e=>e.a<=we&&e.b>=w).sort((p,q)=>p.a-q.a||(q.b-q.a)-(p.b-p.a));
+    const lanes=[]; let bars="";
+    rows.forEach(e=>{
+      const s=Math.max(0,Math.round((e.a-w)/864e5)), t=Math.min(6,Math.round((e.b-w)/864e5));
+      let L=lanes.findIndex(end=>end<s); if(L<0){L=lanes.length;lanes.push(t)} else lanes[L]=t;
+      const contL=e.a<w, contR=e.b>we, single=+e.a===+e.b;
+      const range=single?`${md(e.b)} 마감`:`${md(e.a)} 시작 → ${md(e.b)} 마감`;
+      const dep=e.x.dep?` · 선행: ${e.x.dep.map(id=>BYID[id].t).join(", ")}`:"";
+      bars+=`<button type="button" class="bar ${e.x.k} ${e.x.role?"fbb":""} ${contL?"cl":""} ${contR?"cr":""}" style="grid-column:${s+1}/${t+2};grid-row:${L+2}" data-step="${stepOf(e.x)}" title="${esc(e.x.t)} · ${range}${esc(dep)}">
+        <span class="bt">${e.x.dep?'<span class="bd">↳</span>':""}${e.x.role?"[피드백] ":""}${esc(e.x.t)}</span><span class="br">${contL?"◀ ":""}${range}${contR?" ▶":""}</span></button>`;
+    });
+    weeks+=`<div class="wk">${head}${bars}${lanes.length?"":`<div class="nobar" style="grid-row:2;grid-column:1/8"></div>`}</div>`;
+    if(rows.length){ ag+=`<div class="ag-day ${TODAY>=w&&TODAY<=we?"today":""}"><div class="ag-h">${fmt(w)} – ${fmt(we)}</div>${rows.map(e=>`<button type="button" class="ev ${e.x.k} ${e.x.role?"fbb":""}" data-step="${stepOf(e.x)}"><b>${e.x.role?"[피드백] ":""}${esc(e.x.t)}</b><br><span class="c-rel">${+e.a===+e.b?fmt(e.b)+" 마감":fmt(e.a)+" 시작 → "+fmt(e.b)+" 마감"}${e.x.dep?" · 선행: "+esc(e.x.dep.map(id=>BYID[id].t).join(", ")):""}</span></button>`).join("")}</div>`; }
+  }
+  box.innerHTML=`<p class="cal-note">막대 하나가 업무 하나입니다. 막대 왼쪽 끝이 시작, 오른쪽 끝이 마감이며, <b>↳</b>는 앞선 업무가 끝나야 시작할 수 있는 업무입니다. 막대를 누르면 해당 Step으로 이동합니다.</p>
+    <div class="cal-wrap"><div class="cal-dows">${DOW.map((x,i)=>`<div class="${i>4?"we":""}">${x}</div>`).join("")}</div>${weeks}</div><div class="agenda">${ag}</div>`;
+}
+
+function render(){ renderSteps(); renderCal(); }
+function setView(v){ VIEW=v; document.getElementById("tl").hidden=v!=="step"; document.getElementById("cal").hidden=v!=="cal";
+  document.querySelectorAll("#view button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===v))); }
+function select(i,scroll){ active=(active===i&&!scroll)?null:i; render(); if(scroll&&active!=null){const el=document.getElementById(STEPS[i].id); el&&el.scrollIntoView({block:"start",behavior:"smooth"});} }
+function setD(s){ D=parse(s); document.getElementById("dday").value=s; SCHED_D=null; absFix();
+  try{localStorage.setItem("mbm-d-"+DSNAME,s)}catch(e){}
+  active=currentIdx(); render(); }
+
+document.getElementById("view").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setView(b.dataset.v)});
+document.getElementById("cal").addEventListener("click",e=>{const b=e.target.closest("[data-step]");if(!b)return;setView("step");active=null;select(+b.dataset.step,true);});
+document.getElementById("tl").addEventListener("click",e=>{
+  const dl=e.target.closest(".dlink"); if(dl){active=null;select(+dl.dataset.step,true);return;}
+  const h=e.target.closest(".step-head"); if(h){select(+h.dataset.i,false);return;}
+  const t=e.target.closest(".tog"); if(t){const k=t.dataset.k; closed.has(k)?closed.delete(k):closed.add(k); render(); return;}
+  const al=e.target.closest("[data-all]"); if(al){const i=+al.dataset.s, s=STEPS[i];
+    [...groupsOf(tasksOf(i,"nx")).map(([g,l],gi)=>["n"+gi,l]),["c",tasksOf(i,"cv")],["m",tasksOf(i,"cm")],["f",fbOf(i)]].forEach(([g,l])=>l.forEach((_,j)=>{const k=`${s.id}-${g}-${j}`; al.dataset.all==="open"?closed.delete(k):closed.add(k)})); render(); return;}
+  const g=e.target.closest("[data-go]"); if(g&&!g.disabled){select(+g.dataset.go,true);}
+});
+
+document.getElementById("dday").addEventListener("change",e=>{if(e.target.value)setD(e.target.value)});
+document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT"||VIEW!=="step")return;
+  if(e.key==="ArrowDown"&&active!=null&&active<STEPS.length-1){e.preventDefault();select(active+1,true)}
+  if(e.key==="ArrowUp"&&active>0){e.preventDefault();select(active-1,true)} });
+
+useDataset("규완");
+
+</script>
+
+<script>
+/* 11월 MY · PH 일정 · 인원 (초안) + 사람별 보기 + 공유 할 일 */
+(function(){
+const EVT=(window.MBM_DATA&&window.MBM_DATA.events)||[];
+/* k: go 이동 · prep 준비 · ev 세미나 · fu 팔로업 · opt 필요 시/미정 — a,b는 11월 날짜 */
+const PPL=(window.MBM_DATA&&window.MBM_DATA.people)||[];
+const TODO_PEOPLE=["규완","승완","민영","현택","승규"];
+const NOTE={all:"모든 행사 · 인원 일정 · 할 일을 봅니다.",
+  "규완":"규완의 일정 · 참석 행사 · 할 일, 그리고 메인 발표자료 준비를 봅니다.",
+  "민영":"민영이 주도하는 필리핀 세미나 준비(프로세스 v3)와 일정 · 할 일을 봅니다.",
+  "승완":"승완이 주도하는 말레이시아 세미나 준비(프로세스 v3)와 일정 · 할 일을 봅니다.",
+  "현택":"현택의 일정 · 참석 행사 · 할 일만 봅니다.",
+  "승규":"승규의 일정 · 참석 행사 · 할 일만 봅니다."};
+const D0=14, D1=27, WD="일월화수목금토";
+const evDays=new Set([17,23,24,26]);
+let WHO="all";
+try{const w=localStorage.getItem("mbm-who"); if(w&&NOTE[w]) WHO=w;}catch(e){}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const bare=n=>n.replace(/[()]/g,"").trim();
+const $=id=>document.getElementById(id);
+
+function renderEvents(){
+  $("evt-body").innerHTML=EVT.map(x=>{
+    const has=WHO==="all"||x.w.some(n=>bare(n)===WHO);
+    return `<tr class="${x.main?"main":""} ${has?"":"dim"}"><td class="dt">${esc(x.d)}${x.main?'<span class="badge">D · 메인 발표</span>':""}</td><td>${esc(x.r)}</td><td>${esc(x.e)}</td><td class="who">${x.w.map(n=>bare(n)===WHO||(WHO==="all"&&bare(n)==="규완")?`<span class="me">${esc(n)}</span>`:esc(n)).join(", ")}</td></tr>`}).join("");
+}
+function lane(segs,row){return segs.map(([a,b,k,t])=>`<div class="seg-b k-${k}" style="grid-column:${a-D0+2}/${b-D0+3};grid-row:${row}" title="11/${a}${b>a?"–11/"+b:""} · ${esc(t)}">${esc(t)}</div>`).join("")}
+function renderGrid(){
+  let h='<div style="grid-row:1"></div>', row=1;
+  for(let d=D0;d<=D1;d++){const wd=new Date(2026,10,d).getDay();h+=`<div class="dh ${wd===0||wd===6?"we":""} ${evDays.has(d)?"ev":""}" style="grid-row:1">11/${d}<br>${WD[wd]}</div>`}
+  PPL.filter(p=>WHO==="all"||p.n===WHO).forEach((p,i)=>{
+    if(i){row++;h+=`<div class="rowline" style="grid-row:${row}"></div>`}
+    row++; h+=`<div class="nm" style="grid-row:${row}">${esc(p.n)}<small>${esc(p.tag)}</small></div>`+lane(p.main,row);
+    if(p.opt){row++; h+=`<div class="nm sub" style="grid-column:1;grid-row:${row}">필요 시 · 미정</div>`+lane(p.opt,row);}
+  });
+  $("pg").innerHTML=h;
+}
+function applyWho(){
+  document.querySelector(".wrap").classList.toggle("hide-mine",WHO!=="규완");
+  document.querySelector(".wrap").classList.toggle("hide-plan",!DATA[WHO]);
+  if(DATA[WHO]&&DSNAME!==WHO) useDataset(WHO);
+  document.querySelectorAll("#who button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.w===WHO)));
+  $("who-note").textContent=NOTE[WHO];
+  $("pg-sub").textContent="11/14 ~ 11/27"+(WHO==="all"?" · 전체 인원":" · "+WHO);
+  $("todo-title").textContent=WHO==="all"?"할 일 · 메모 (전체)":`할 일 · 메모 · ${WHO}`;
+  if(WHO!=="all") void 0;
+  renderEvents(); renderGrid(); renderTodos(); renderPV();
+}
+$("who").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;WHO=b.dataset.w;
+  try{localStorage.setItem("mbm-who",WHO)}catch(err){} applyWho();});
+
+/* ── 할 일 · 메모 (data.js) ── */
+const ITEMS=((window.MBM_DATA&&window.MBM_DATA.todos)||[]).map((x,i)=>({id:"t"+i,...x})), READY=true;
+const today=new Date(); today.setHours(0,0,0,0);
+function setStatus(t){$("todo-st").textContent=t}
+function itemRow(it){
+  const due=it.due?new Date(it.due+"T00:00:00"):null, over=due&&!it.done&&due<today;
+  return `<div class="ti ${it.done?"done":""}"><span class="ck" aria-label="${it.done?"완료":"진행 중"}">${it.done?"✓":""}</span>
+    <span class="tx">${esc(it.text)}</span>
+    <span class="meta">${due?`<span class="${over?"ov":""}">~${due.getMonth()+1}/${due.getDate()}</span>`:""}</span><span></span></div>`;
+}
+function renderTodos(){
+  const L=$("todo-list");
+  const sorted=[...ITEMS].sort((a,b)=>(a.done-b.done)||((a.due||"9")<(b.due||"9")?-1:(a.due||"9")>(b.due||"9")?1:0));
+  const people=WHO==="all"?TODO_PEOPLE:[WHO];
+  L.innerHTML=people.map(n=>{
+    const its=sorted.filter(x=>x.who===n);
+    return `<div class="todo-grp">${WHO==="all"?`<h4>${esc(n)}</h4>`:""}${its.length?its.map(itemRow).join(""):`<div class="todo-empty">아직 적힌 항목이 없습니다.</div>`}</div>`}).join("");
+}
+setStatus("추가 · 변경은 규완에게 알려주세요.");
+/* ── 사람별 Step · 캘린더 (규완 외) ── */
+let PV="step";
+const KL={go:"이동",prep:"준비",ev:"세미나",fu:"팔로업",opt:"필요 시 · 미정",off:"업무 불가"};
+const nd=x=>typeof x==="number"?new Date(2026,10,x):new Date(x+"T00:00:00");
+const md=d=>`${d.getMonth()+1}/${d.getDate()}`;
+const mdw=d=>`${md(d)}(${WD[d.getDay()]})`;
+const sameOrAfter=(a,b)=>a.getTime()>=b.getTime();
+function personItems(p){
+  const segs=[];
+  (p.pre||[]).forEach(([a,b,k,t])=>segs.push({a:nd(a),b:nd(b),k,t,opt:false}));
+  (p.main||[]).forEach(([a,b,k,t])=>segs.push({a:nd(a),b:nd(b),k,t,opt:false}));
+  (p.opt||[]).forEach(([a,b,k,t])=>segs.push({a:nd(a),b:nd(b),k,t,opt:true}));
+  segs.sort((x,y)=>x.a-y.a);
+  const todos=ITEMS.filter(x=>x.who===p.n);
+  return {segs,todos};
+}
+function personSteps(p){
+  const {segs,todos}=personItems(p);
+  const evs=segs.filter(s=>!s.opt&&s.k==="ev");
+  const steps=[]; let start=new Date(today);
+  evs.forEach(ev=>{steps.push({title:ev.t,a:new Date(start),b:ev.b}); start=new Date(ev.b); start.setDate(start.getDate()+1);});
+  const inR=(d,s)=>d>=s.a&&d<=s.b;
+  steps.forEach(s=>{
+    s.segs=segs.filter(x=>inR(x.a,s)||(x.a<s.a&&x.b>=s.a));
+    s.todos=todos.filter(t=>t.due&&inR(nd(t.due),s));
+  });
+  const extra=segs.filter(x=>!steps.some(s=>s.segs.includes(x)));
+  if(extra.length) steps.push({title:"그 외 (필요 시)",a:extra[0].a,b:extra[extra.length-1].b,segs:extra,todos:[]});
+  const nodue=todos.filter(t=>!t.due);
+  return {steps,nodue};
+}
+function todoLine(t){return `<li class="pv-it todo ${t.done?"done":""}"><span class="pv-d">${t.due?mdw(nd(t.due)):"기한 없음"}</span><span class="pv-t">${t.done?"✓ ":""}${esc(t.text)}</span><span class="pv-k">할 일</span></li>`}
+function segLine(x){const r=x.a.getTime()===x.b.getTime()?mdw(x.a):`${mdw(x.a)} – ${mdw(x.b)}`;
+  return `<li class="pv-it k-line-${x.opt?"opt":x.k}"><span class="pv-d">${r}</span><span class="pv-t">${esc(x.t)}</span><span class="pv-k">${x.opt?KL.opt:KL[x.k]||""}</span></li>`}
+function renderPVSteps(p){
+  const {steps,nodue}=personSteps(p);
+  let h="";
+  if(nodue.length) h+=`<div class="pv-step"><div class="pv-h"><b>기한 없는 할 일</b></div><ul>${nodue.map(todoLine).join("")}</ul></div>`;
+  steps.forEach((s,i)=>{
+    const now=today>=s.a&&today<=s.b;
+    const rows=[...s.segs.map(x=>({d:x.a,h:segLine(x)})),...s.todos.map(t=>({d:nd(t.due),h:todoLine(t)}))].sort((a,b)=>a.d-b.d);
+    h+=`<div class="pv-step ${now?"now":""}"><div class="pv-h"><span class="st-num">Step ${i+1}</span><b>${esc(s.title)}</b><span class="pv-r">${mdw(s.a)} – ${mdw(s.b)}${now?' <span class="chip state-now">지금</span>':""}</span></div>
+      <ul>${rows.length?rows.map(r=>r.h).join(""):'<li class="pv-none">아직 적힌 일정 · 할 일이 없습니다. 아래 할 일 칸에 기한과 함께 적으면 여기에 들어옵니다.</li>'}</ul></div>`;
+  });
+  return h;
+}
+function renderPVCal(p){
+  const {segs,todos}=personItems(p);
+  const last=segs.length?segs.reduce((m,x)=>x.b>m?x.b:m,segs[0].b):new Date(2026,10,30);
+  const s0=new Date(today); s0.setDate(s0.getDate()-((s0.getDay()+6)%7));
+  let h='<div class="pc-dows">'+["월","화","수","목","금","토","일"].map(x=>`<div>${x}</div>`).join("")+"</div>";
+  for(let w=new Date(s0); w<=last; w.setDate(w.getDate()+7)){
+    h+='<div class="pc-wk">';
+    for(let i=0;i<7;i++){
+      const d=new Date(w); d.setDate(d.getDate()+i);
+      const its=segs.filter(x=>d>=x.a&&d<=x.b), td=todos.filter(t=>t.due&&nd(t.due).getTime()===d.getTime());
+      const isT=d.getTime()===today.getTime(), we=i>4, first=d.getDate()===1||(w.getTime()===s0.getTime()&&i===0);
+      h+=`<div class="pc-d ${we?"we":""} ${isT?"today":""}"><div class="pc-n">${first?`<span class="m">${d.getMonth()+1}월</span>`:""}${d.getDate()}</div>
+        ${its.map(x=>`<div class="pc-e k-${x.opt?"opt":x.k}">${esc(x.t)}</div>`).join("")}
+        ${td.map(t=>`<div class="pc-e todo ${t.done?"done":""}">${t.done?"✓ ":""}${esc(t.text)}</div>`).join("")}</div>`;
+    }
+    h+="</div>";
+  }
+  return h;
+}
+function renderPV(){
+  const sec=$("pv"); const p=PPL.find(x=>x.n===WHO);
+  if(!p||DATA[WHO]){sec.hidden=true;return}
+  sec.hidden=false;
+  $("pv-title").textContent=`${p.n} 준비 · 일정`;
+  document.querySelectorAll("#pv-view button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===PV)));
+  $("pv-body").className=PV==="cal"?"pv-cal":"pv-steps";
+  $("pv-body").innerHTML=PV==="cal"?renderPVCal(p):renderPVSteps(p);
+}
+$("pv-view").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;PV=b.dataset.v;renderPV();});
+(function(){const M=window.MBM_DATA||{};
+  $("upd").textContent=M.updated?`마지막 업데이트 ${M.updated}`:"";
+  const n=(M.news||[]).slice(0,5); $("news").innerHTML=n.length?`<h3>업데이트 소식</h3><ul>${n.map(x=>`<li><b>${esc(x.d)}</b>${esc(x.t)}</li>`).join("")}</ul>`:"";})();
+applyWho();
+})();
+</script>
+
+</body></html>
