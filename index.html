@@ -1015,16 +1015,17 @@ document.getElementById("ed-ok").addEventListener("click",async()=>{
     date:st==="done"?document.getElementById("ed-d").value:"", who:document.getElementById("me-w").value, note:document.getElementById("ed-n").value.trim()};
   if(!body.pin||!body.who){ ED.close(); meWarn("먼저 위에 이름과 팀 PIN을 넣어 주세요."); return; }
   const m=document.getElementById("ed-m"); m.style.color=""; m.textContent="저장 중…";
-  try{ const r=await fetch(API,{method:"POST",body:JSON.stringify(body)}); const j=await r.json();
+  try{ const j=await postStatus(body);
     if(!j.ok){ m.textContent=j.error==="PIN"?"팀 PIN이 맞지 않습니다.":"저장하지 못했습니다: "+(j.error||""); return; }
     lsSet("mbm-pin",body.pin); lsSet("mbm-who",body.who); meOk(`${body.who} · 저장됨`);
     REMOTE[DSNAME]=REMOTE[DSNAME]||{}; REMOTE[DSNAME][ED_ID]={state:body.state,pct:body.pct,done:body.date||null,who:body.who,note:body.note,at:Date.now(),src:"sheet"};
     mergeStatus(); SCHED_D=null; render(); ED.close(); loadRemote();
-  }catch(e){ m.textContent="저장하지 못했습니다. 인터넷 연결을 확인해 주세요."; }
+  }catch(e){ m.textContent="저장하지 못했습니다: "+(e&&e.message?e.message:"연결 오류"); }
 });
 document.addEventListener("click",e=>{const b=e.target.closest("[data-edit]"); if(b){e.preventDefault();e.stopPropagation();openEd(b.dataset.edit);}},true);
 let PENDING=null;
-async function postStatus(body){ const r=await fetch(API,{method:"POST",body:JSON.stringify(body)}); return r.json(); }
+async function postStatus(body){ const r=await fetch(API,{method:"POST",body:JSON.stringify(body)}); const t=await r.text();
+  try{ return JSON.parse(t); }catch(e){ const m=(t.match(/<title>([^<]*)/i)||[])[1]||t.replace(/<[^>]+>/g," ").replace(/\s+/g," ").slice(0,120); throw new Error(`HTTP ${r.status} · ${m}`); } }
 async function quickSave(id,pct){
   const r=recOf(id)||{}, pin=document.getElementById("me-pin").value.trim(), who=document.getElementById("me-w").value;
   const state=pct>=100?"done":pct>0?"doing":"todo";
@@ -1038,7 +1039,7 @@ async function quickSave(id,pct){
     if(!j.ok){ if(j.error==="PIN"){ lsSet("mbm-pin",""); document.getElementById("me-pin").value=""; delete REMOTE[DSNAME][id]; mergeStatus(); SCHED_D=null; render(); meWarn("팀 PIN이 맞지 않아 저장되지 않았습니다. PIN을 다시 넣어 주세요."); } else alert("저장하지 못했습니다: "+(j.error||"")); }
     else meOk(`${who} · 저장됨`);
     loadRemote();
-  }catch(e){ alert("저장하지 못했습니다. 인터넷 연결을 확인해 주세요."); loadRemote(); }
+  }catch(e){ meWarn("저장하지 못했습니다: "+(e&&e.message?e.message:"연결 오류")); loadRemote(); }
 }
 function meWarn(t){ const m=document.getElementById("me-m"), b=document.getElementById("me"); m.textContent=t; m.className="me-m err"; b.classList.add("flash"); b.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>b.classList.remove("flash"),1600); }
 function meOk(t){ const m=document.getElementById("me-m"); m.textContent=t; m.className="me-m"; }
