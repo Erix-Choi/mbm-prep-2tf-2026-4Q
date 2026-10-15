@@ -2,7 +2,7 @@
 window.MBM_DATA = {
   /* 공용 상태 저장소(구글 시트 웹 앱) 주소 — 비어 있으면 페이지에서 상태 바꾸기 불가 */
   api: "https://script.google.com/macros/s/AKfycbyL3wUUrx2c26OSaz_yyeD713NHz02-eAIzQdN2RyeD5XMeZigXQF1YjtdPDEdN1YtJ/exec",
-  updated: "2026-10-15 10:40 KST",
+  updated: "2026-10-15 10:55 KST",
   /* 행사 */
   events: [
   {d:"11/14(토)",r:"🇹🇭 태국",e:"MBM (CIVIL NX)",w:["규완","태국 현지 영업"]},
