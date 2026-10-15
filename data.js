@@ -2,7 +2,7 @@
 window.MBM_DATA = {
   /* 공용 상태 저장소(구글 시트 웹 앱) 주소 — 비어 있으면 페이지에서 상태 바꾸기 불가 */
   api: "https://script.google.com/macros/s/AKfycbyL3wUUrx2c26OSaz_yyeD713NHz02-eAIzQdN2RyeD5XMeZigXQF1YjtdPDEdN1YtJ/exec",
-  updated: "2026-10-15 11:20 KST",
+  updated: "2026-10-15 11:35 KST",
   /* 행사 */
   events: [
   {d:"11/14(토)",r:"🇹🇭 태국",e:"MBM (CIVIL NX)",w:["규완","태국 현지 영업"]},
@@ -29,8 +29,8 @@ window.MBM_DATA = {
      완료 표시가 없는데 마감이 지나면 자동으로 "지연"으로 표시됩니다. */
   status: {
     규완: {},
-    MY: {a2:{started:true,pct:10,at:"2026-10-14 16:20 KST",note:"1번 스피커 유력: H&T Ir. Seah Wei Cheng (Associate · 교량 13년+ · PE · IStructE) · 확정 10/19(월) 예정, Dr. The 지원 (Teams 10/14)"}},
-    PH: {a1:{done:"2026-10-14",at:"2026-10-15 10:20 KST",note:"두 주제 모두 두 도시에서 같은 구성으로 (승완 실행계획 10/14)"},a2:{started:true,pct:10,at:"2026-10-15 10:20 KST",note:"승규 Speaker Strategy 공유 (10/14) · 섭외 방식은 10/16 회의에서"},a3:{started:true,pct:10,at:"2026-10-15 10:20 KST",note:"후보: 세부 5곳 · 다바오 5곳 (승규 10/14) · 10/16 회의에서 견적 문의할 곳 결정"}}
+    MY: {"a2-1":{state:"done",done:"2026-10-14",at:"2026-10-15 11:35 KST"},"a2-3":{state:"doing",pct:50,at:"2026-10-15 11:35 KST"},a2:{at:"2026-10-14 16:20 KST",note:"1번 스피커 유력: H&T Ir. Seah Wei Cheng (Associate · 교량 13년+ · PE · IStructE) · 확정 10/19(월) 예정, Dr. The 지원 (Teams 10/14)"}},
+    PH: {a1:{done:"2026-10-14",at:"2026-10-15 10:20 KST",note:"두 주제 모두 두 도시에서 같은 구성으로 (승완 실행계획 10/14)"},"a2-2":{state:"doing",pct:50,at:"2026-10-15 11:35 KST"},a2:{at:"2026-10-15 10:20 KST",note:"승규 Speaker Strategy 공유 (10/14) · 섭외 방식은 10/16 회의에서"},"a3-1":{state:"doing",pct:50,at:"2026-10-15 11:35 KST"},a3:{at:"2026-10-15 10:20 KST",note:"후보: 세부 5곳 · 다바오 5곳 (승규 10/14) · 10/16 회의에서 견적 문의할 곳 결정"}}
   },
   /* 할 일 · 메모 — who: "규완" / "MY"(말레이시아) / "PH"(필리핀), due: "YYYY-MM-DD"(선택), done: true/false */
   todos: [

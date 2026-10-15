@@ -779,13 +779,17 @@ const recOf=id=>(STATUS[DSNAME]||{})[id]||null;
 const pctOfRec=r=>!r?null:(r.state==="done"?100:r.state==="doing"?(r.pct!=null&&r.pct!==""?+r.pct:10):0);
 const subIds=x=>(x.s||[]).map((_,j)=>x.id+"-"+(j+1));
 function hasSubRec(x){ return subIds(x).some(id=>recOf(id)); }
+const hasSubs=x=>!!(x.s&&x.s.length);
+function subPct(x,id){ const p=pctOfRec(recOf(id)); if(p!=null) return p; const o=recOf(x.id); return o&&o.state==="done"?100:0; }
 function taskPct(x){
-  if(x.s&&x.s.length&&hasSubRec(x)){ const own=pctOfRec(recOf(x.id))||0; const v=subIds(x).map(id=>{const p=pctOfRec(recOf(id));return p==null?own:p;}); return Math.round(v.reduce((a,b)=>a+b,0)/v.length); }
+  if(hasSubs(x)){ const v=subIds(x).map(id=>subPct(x,id)); return Math.round(v.reduce((a,b)=>a+b,0)/v.length); }
   return pctOfRec(recOf(x.id))||0;
 }
 function doneDateOf(x){
-  const own=recOf(x.id); if(own&&own.state==="done"&&own.done&&!hasSubRec(x)) return own.done;
-  const ds=subIds(x).map(id=>recOf(id)).filter(r=>r&&r.done).map(r=>r.done).sort(); return ds.length?ds[ds.length-1]:(own&&own.done)||iso(TODAY);
+  const own=recOf(x.id);
+  const ds=subIds(x).map(id=>recOf(id)).filter(r=>r&&r.done).map(r=>r.done).sort();
+  if(ds.length) return ds[ds.length-1];
+  return (own&&own.done)||iso(TODAY);
 }
 function stOf(x){
   const r=recOf(x.id)||{}, end=endOf(x), start=startOf(x), pct=taskPct(x);
@@ -822,7 +826,7 @@ function slider(id,pct,label){
 function bar(pct){ return `<div class="prr"><span class="prb"><i style="width:${pct}%"></i></span><b class="prv">${pct}%</b></div>`; }
 function stWord(pct){ return pct>=100?"완료":pct>0?"진행 중":"착수 전"; }
 function stCell(x){
-  const t=stOf(x), r=recOf(x.id)||{}, roll=x.s&&x.s.length&&hasSubRec(x);
+  const t=stOf(x), r=recOf(x.id)||{}, roll=hasSubs(x);
   let top="";
   if(t.k==="done") top=`<div class="st-l done">✓ 완료 ${md(t.d)}${t.early?` · ${t.early}일 앞당김`:t.late?` · ${t.late}일 늦음`:""}</div>`;
   else if(t.k==="late") top=`<div class="st-l late">⚠ 지연 ${t.days}일 · ${stWord(t.pct)}</div>`;
@@ -832,7 +836,7 @@ function stCell(x){
   return `${top}${ctl}<div class="st-f">${foot}<button type="button" class="st-more" data-edit="${x.id}" title="메모 · 완료일 바꾸기">메모</button></div>`;
 }
 function subCell(x,j){
-  const id=x.id+"-"+(j+1), r=recOf(id), p0=pctOfRec(r), pct=p0==null?(pctOfRec(recOf(x.id))||0):p0;
+  const id=x.id+"-"+(j+1), r=recOf(id), pct=subPct(x,id);
   return `${slider(id,pct,x.s[j].t)}${r&&r.who?`<div class="st-f"><span class="st-by">${esc(r.who)}</span></div>`:""}`;
 }
 function renderProg(){
