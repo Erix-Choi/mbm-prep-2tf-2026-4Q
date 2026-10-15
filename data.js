@@ -1,6 +1,8 @@
 /* MBM 세션 준비표 데이터 — 이 파일만 고치면 페이지에 반영됩니다. */
 window.MBM_DATA = {
-  updated: "2026-10-15 10:20 KST",
+  /* 공용 상태 저장소(구글 시트 웹 앱) 주소 — 비어 있으면 페이지에서 상태 바꾸기 불가 */
+  api: "",
+  updated: "2026-10-15 10:40 KST",
   /* 행사 */
   events: [
   {d:"11/14(토)",r:"🇹🇭 태국",e:"MBM (CIVIL NX)",w:["규완","태국 현지 영업"]},
@@ -20,14 +22,15 @@ window.MBM_DATA = {
   {n:"승규",tag:"PH 부(현장 · 사후)",main:[[18,18,"ev","세부 GEN NX"],[21,21,"ev","다바오 GEN NX (토)"]],
     opt:[[17,17,"opt","세부 전날 세팅 지원"],[20,20,"opt","다바오 전날 세팅 지원"]]},
 ],
-  /* 진행 상태 — 보기(규완/MY/PH)별로 업무 id에 적음.
+  /* 진행 상태(채팅 반영분) — 보기(규완/MY/PH)별로 업무 id에 적음. at = 반영 시각(페이지에서 바꾼 값과 비교해 더 최근 것이 보임).
+     state: "todo"(착수 전) / "doing"(진행 중, pct=진행률) / "done"(완료, done=완료일) — 예전 형식(done · started)도 그대로 읽음.
      done: 실제 완료일 → 마감보다 빠르면 "앞당김", 늦으면 "늦음"으로 표시
      started: 시작했음 표시(선택) · eta: 지연 시 예상 완료일(선택) · note: 짧은 메모(선택)
      완료 표시가 없는데 마감이 지나면 자동으로 "지연"으로 표시됩니다. */
   status: {
     규완: {},
-    MY: {a2:{started:true,note:"1번 스피커 유력: H&T Ir. Seah Wei Cheng (Associate · 교량 13년+ · PE · IStructE) · 확정 10/19(월) 예정, Dr. The 지원 (Teams 10/14)"}},
-    PH: {a1:{done:"2026-10-14",note:"두 주제 모두 두 도시에서 같은 구성으로 (승완 실행계획 10/14)"},a2:{started:true,note:"승규 Speaker Strategy 공유 (10/14) · 섭외 방식은 10/16 회의에서"},a3:{started:true,note:"후보: 세부 5곳 · 다바오 5곳 (승규 10/14) · 10/16 회의에서 견적 문의할 곳 결정"}}
+    MY: {a2:{started:true,at:"2026-10-14 16:20 KST",note:"1번 스피커 유력: H&T Ir. Seah Wei Cheng (Associate · 교량 13년+ · PE · IStructE) · 확정 10/19(월) 예정, Dr. The 지원 (Teams 10/14)"}},
+    PH: {a1:{done:"2026-10-14",at:"2026-10-15 10:20 KST",note:"두 주제 모두 두 도시에서 같은 구성으로 (승완 실행계획 10/14)"},a2:{started:true,at:"2026-10-15 10:20 KST",note:"승규 Speaker Strategy 공유 (10/14) · 섭외 방식은 10/16 회의에서"},a3:{started:true,at:"2026-10-15 10:20 KST",note:"후보: 세부 5곳 · 다바오 5곳 (승규 10/14) · 10/16 회의에서 견적 문의할 곳 결정"}}
   },
   /* 할 일 · 메모 — who: "규완" / "MY"(말레이시아) / "PH"(필리핀), due: "YYYY-MM-DD"(선택), done: true/false */
   todos: [
