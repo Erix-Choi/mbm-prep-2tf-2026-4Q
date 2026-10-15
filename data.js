@@ -1,7 +1,7 @@
 /* MBM 세션 준비표 데이터 — 이 파일만 고치면 페이지에 반영됩니다. */
 window.MBM_DATA = {
   /* 공용 상태 저장소(구글 시트 웹 앱) 주소 — 비어 있으면 페이지에서 상태 바꾸기 불가 */
-  api: "",
+  api: "https://script.google.com/macros/s/AKfycbyL3wUUrx2c26OSaz_yyeD713NHz02-eAIzQdN2RyeD5XMeZigXQF1YjtdPDEdN1YtJ/exec",
   updated: "2026-10-15 10:40 KST",
   /* 행사 */
   events: [
