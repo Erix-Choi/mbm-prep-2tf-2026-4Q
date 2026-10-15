@@ -363,7 +363,19 @@ tr.c[hidden]{display:none}
 .sc.doing{background:var(--accent-soft);color:var(--accent);border-color:#BFDCDF}
 .sc.risk{background:var(--warn-soft);color:var(--warn);border-color:#F0C9A8}
 .sc.note{font-weight:400}
-td.stc{width:1%;min-width:172px;vertical-align:top}
+td.stc{width:1%;min-width:150px;vertical-align:top}
+.prr{display:flex;align-items:center;gap:7px}
+input.pr{-webkit-appearance:none;appearance:none;width:104px;height:6px;border-radius:3px;margin:6px 0;background:linear-gradient(to right,var(--accent) var(--v),#DDE3EA var(--v));cursor:pointer}
+input.pr::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+input.pr::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.prv{font-family:var(--f-mono);font-size:12px;min-width:34px;text-align:right;color:var(--ink)}
+.prb{display:inline-block;width:104px;height:6px;border-radius:3px;background:#DDE3EA;overflow:hidden;margin:6px 0}
+.prb i{display:block;height:100%;background:var(--accent)}
+.prb.sm{width:46px;height:5px;margin:0 0 0 6px;vertical-align:1px}
+.st-l.todo{color:var(--muted);font-weight:600}.st-l.doing{color:var(--accent)}
+.chip.c-prog{background:var(--accent-soft);color:var(--accent);border-color:#BFDCDF}
+.pg-big{font-family:var(--f-mono);font-size:22px;font-weight:700;color:var(--accent);margin:0 6px}
+td.stc.sub .prr{opacity:.95}
 .stseg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
 .stseg button{font:inherit;font-size:11.5px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--muted);padding:3px 7px;cursor:pointer;white-space:nowrap}
 .stseg button:first-child{border-left:0}
@@ -754,12 +766,24 @@ async function loadRemote(){
     REMOTE=R; mergeStatus(); SCHED_D=null; render(); if(typeof renderPeople==="function"){} }catch(e){ console.warn("status load failed",e); }
 }
 const dd=(a,b)=>Math.round((a-b)/864e5);
+const recOf=id=>(STATUS[DSNAME]||{})[id]||null;
+const pctOfRec=r=>!r?null:(r.state==="done"?100:r.state==="doing"?(r.pct!=null&&r.pct!==""?+r.pct:10):0);
+const subIds=x=>(x.s||[]).map((_,j)=>x.id+"-"+(j+1));
+function hasSubRec(x){ return subIds(x).some(id=>recOf(id)); }
+function taskPct(x){
+  if(x.s&&x.s.length&&hasSubRec(x)){ const own=pctOfRec(recOf(x.id))||0; const v=subIds(x).map(id=>{const p=pctOfRec(recOf(id));return p==null?own:p;}); return Math.round(v.reduce((a,b)=>a+b,0)/v.length); }
+  return pctOfRec(recOf(x.id))||0;
+}
+function doneDateOf(x){
+  const own=recOf(x.id); if(own&&own.state==="done"&&own.done&&!hasSubRec(x)) return own.done;
+  const ds=subIds(x).map(id=>recOf(id)).filter(r=>r&&r.done).map(r=>r.done).sort(); return ds.length?ds[ds.length-1]:(own&&own.done)||iso(TODAY);
+}
 function stOf(x){
-  const s=(STATUS[DSNAME]||{})[x.id]||{}, end=endOf(x), start=startOf(x);
-  const base={note:s.note,who:s.who,pct:s.state==="doing"?(s.pct!=null?+s.pct:null):0,src:s.src};
-  if(s.state==="done"&&s.done){ const d=parse(s.done), diff=dd(end,d); return {...base,k:"done",d,early:diff>0?diff:0,late:diff<0?-diff:0}; }
-  if(TODAY>end) return {...base,k:"late",days:dd(TODAY,end),eta:s.eta?parse(s.eta):null,started:s.state==="doing"};
-  if(s.state==="doing") return {...base,k:"doing"};
+  const r=recOf(x.id)||{}, end=endOf(x), start=startOf(x), pct=taskPct(x);
+  const base={note:r.note,who:r.who,pct,src:r.src};
+  if(pct>=100){ const d=parse(doneDateOf(x)), diff=dd(end,d); return {...base,k:"done",d,early:diff>0?diff:0,late:diff<0?-diff:0}; }
+  if(TODAY>end) return {...base,k:"late",days:dd(TODAY,end),eta:r.eta?parse(r.eta):null,started:pct>0};
+  if(pct>0) return {...base,k:"doing"};
   return {...base,k:"todo",due:TODAY>=start};
 }
 const depLate=x=>(x.dep||[]).some(id=>BYID[id]&&stOf(BYID[id]).k==="late");
@@ -783,17 +807,24 @@ function extraChips(x){
   if(t.note) h+=`<span class="sc note">${esc(t.note)}</span>`;
   return h;
 }
+function slider(id,pct,label){
+  return `<div class="prr"><input type="range" class="pr" min="0" max="100" step="10" value="${pct}" data-id="${id}" style="--v:${pct}%" aria-label="${esc(label)} 진행률"><b class="prv">${pct}%</b></div>`;
+}
+function bar(pct){ return `<div class="prr"><span class="prb"><i style="width:${pct}%"></i></span><b class="prv">${pct}%</b></div>`; }
+function stWord(pct){ return pct>=100?"완료":pct>0?"진행 중":"착수 전"; }
 function stCell(x){
-  const t=stOf(x), s=(STATUS[DSNAME]||{})[x.id]||{}, cur=s.state||"todo";
+  const t=stOf(x), r=recOf(x.id)||{}, roll=x.s&&x.s.length&&hasSubRec(x);
   let top="";
   if(t.k==="done") top=`<div class="st-l done">✓ 완료 ${md(t.d)}${t.early?` · ${t.early}일 앞당김`:t.late?` · ${t.late}일 늦음`:""}</div>`;
-  else if(t.k==="late") top=`<div class="st-l late">⚠ 지연 ${t.days}일${t.eta?` · 예상 ${md(t.eta)}`:""}</div>`;
-  else if(t.k==="todo"&&t.due) top=`<div class="st-l due">시작일 지남</div>`;
-  const B=(v,l)=>`<button type="button" class="${v}" data-set="${v}" data-id="${x.id}" aria-pressed="${cur===v}">${l}</button>`;
-  const pct=cur==="doing"?(s.pct!=null?+s.pct:0):null;
-  const pctSel=cur==="doing"?`<span class="st-p"><select class="stpct" data-id="${x.id}" aria-label="진행률">${[0,10,20,30,40,50,60,70,80,90].map(v=>`<option value="${v}" ${v===pct?"selected":""}>${v}%</option>`).join("")}</select><i class="mini"><b style="width:${pct}%"></b></i></span>`:"";
-  const by=s.who?`<span class="st-by">${esc(s.who)}${s.at?" · "+new Date(s.at).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"}):""}</span>`:"";
-  return `${top}<div class="stseg">${B("todo","착수 전")}${B("doing","진행 중")}${B("done","완료")}</div><div class="st-f">${pctSel}${by}<button type="button" class="st-more" data-edit="${x.id}" title="메모 · 완료일 바꾸기">메모 · 날짜</button></div>`;
+  else if(t.k==="late") top=`<div class="st-l late">⚠ 지연 ${t.days}일 · ${stWord(t.pct)}</div>`;
+  else top=`<div class="st-l ${t.k}">${stWord(t.pct)}${t.k==="todo"&&t.due?" · 시작일 지남":""}</div>`;
+  const ctl=roll?bar(t.pct):slider(x.id,t.pct,x.t);
+  const foot=roll?`<span class="st-by">하위 ${x.s.length}개 평균</span>`:(r.who?`<span class="st-by">${esc(r.who)}${r.at?" · "+new Date(r.at).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"}):""}</span>`:"");
+  return `${top}${ctl}<div class="st-f">${foot}<button type="button" class="st-more" data-edit="${x.id}" title="메모 · 완료일 바꾸기">메모</button></div>`;
+}
+function subCell(x,j){
+  const id=x.id+"-"+(j+1), r=recOf(id), p0=pctOfRec(r), pct=p0==null?(pctOfRec(recOf(x.id))||0):p0;
+  return `${slider(id,pct,x.s[j].t)}${r&&r.who?`<div class="st-f"><span class="st-by">${esc(r.who)}</span></div>`:""}`;
 }
 function renderProg(){
   const box=document.getElementById("prog"); if(!box) return;
@@ -801,10 +832,10 @@ function renderProg(){
   const c={done:0,doing:0,late:0,todo:0}; st.forEach(([,t])=>c[t.k]++);
   const late=st.filter(([,t])=>t.k==="late").sort((a,b)=>b[1].days-a[1].days);
   const early=st.filter(([,t])=>t.k==="done"&&t.early);
-  const pct=all.length?Math.round(st.reduce((a,[,t])=>a+(t.k==="done"?100:t.pct||0),0)/all.length):0;
-  box.innerHTML=`<div class="pg-sum"><b>진행 현황</b>
+  const pct=all.length?Math.round(st.reduce((a,[,t])=>a+(t.pct||0),0)/all.length):0;
+  box.innerHTML=`<div class="pg-sum"><b>전체 진행률</b><span class="pg-big">${pct}%</span>
     <span class="sc done">완료 ${c.done}</span><span class="sc doing">진행 중 ${c.doing}</span><span class="sc late">지연 ${c.late}</span><span class="sc todo">착수 전 ${c.todo}</span>
-    <span class="pbar" aria-label="진행률 ${pct}%"><i style="width:${pct}%"></i></span><span class="pct">${pct}%</span></div>
+    <span class="pbar" aria-label="진행률 ${pct}%"><i style="width:${pct}%"></i></span></div>
     ${late.length?`<div class="pg-list late"><b>지연</b>${late.map(([x,t])=>`<button type="button" class="dlink" data-step="${stepOf(x)}">${esc(x.t)} · ${t.days}일 (마감 ${md(endOf(x))})</button>`).join("")}</div>`:""}
     ${early.length?`<div class="pg-list early"><b>앞당겨 완료</b>${early.map(([x,t])=>`<button type="button" class="dlink" data-step="${stepOf(x)}">${esc(x.t)} · ${t.early}일</button>`).join("")}</div>`:""}`;
 }
@@ -822,7 +853,7 @@ function table(list,sid,grp,showTrk){
     const subs=kids.map((c,j)=>`<tr class="c" ${open?"":"hidden"}><td class="no">${n}-${j+1}</td>
         <td class="t">${esc(c.t)}${c.x?`<span class="x ${c.xi?"i":""}">${c.xi?"· ":"⚠ "}${esc(c.x)}</span>`:""}</td>
         <td class="ty"><b class="tag ${c.ty}">${TY[c.ty]}</b></td><td class="o">${c.o?esc(c.o):`<span style="color:var(--faint)">〃</span>`}</td>
-        <td class="d inh">〃</td><td class="stc"></td></tr>`).join("");
+        <td class="d inh">〃</td><td class="stc sub">${subCell(x,j)}</td></tr>`).join("");
     return head+subs;}).join("");
   return `<div class="tbl"><table><thead><tr><th>#</th><th>${showTrk?"검토할 것":"해야 되는 것"}</th><th>유형</th><th>${showTrk?"작성 · 검토":"담당"}</th><th>기간 (시작 – 마감)</th><th>상태</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
@@ -844,7 +875,7 @@ function renderSteps(){
         <span class="st-when"><span class="rel">${s.lab}</span>${s.from===s.to?fmt(a):fmt(a)+" – "+fmt(b)}</span>
         <span class="st-meta">${stChip}
           ${mine?`<span class="chip">직접 ${mine}</span>`:""}
-          ${(()=>{const l=TASKS.filter(x=>!x.role&&stepOf(x)===i).map(stOf);const d=l.filter(t=>t.k==="done").length,lt=l.filter(t=>t.k==="late").length;return (d?`<span class="chip c-done">완료 ${d}/${l.length}</span>`:"")+(lt?`<span class="chip c-late">지연 ${lt}</span>`:"");})()}
+          ${(()=>{const l=TASKS.filter(x=>!x.role&&stepOf(x)===i).map(stOf);if(!l.length)return "";const d=l.filter(t=>t.k==="done").length,lt=l.filter(t=>t.k==="late").length,pp=Math.round(l.reduce((a,t)=>a+(t.pct||0),0)/l.length);return `<span class="chip c-prog">진행 ${pp}%<span class="prb sm"><i style="width:${pp}%"></i></span></span>`+(d?`<span class="chip c-done">완료 ${d}/${l.length}</span>`:"")+(lt?`<span class="chip c-late">지연 ${lt}</span>`:"");})()}
           ${fb.length?`<span class="chip fbk">피드백 ${fb.length}</span>`:""}
           ${decs.length?`<span class="chip dc">결정 ${decs.length}</span>`:""}
           ${holChips(s)}</span>
@@ -952,7 +983,7 @@ function edSync(){ const st=(ED.querySelector("input[name=st]:checked")||{}).val
   document.getElementById("ed-pr").hidden=st!=="doing"; document.getElementById("ed-dr").hidden=st!=="done";
   document.getElementById("ed-pv").textContent=document.getElementById("ed-p").value+"%"; }
 function openEd(id,pre){ pre=pre||{};
-  const x=BYID[id]; if(!x) return; ED_ID=id; const t=stOf(x), s=(STATUS[DSNAME]||{})[id]||{};
+  const pid=id.split("-")[0], j=id.includes("-")?+id.split("-")[1]-1:null; const px=BYID[pid]; if(!px) return; const x=j==null?px:{...px,t:px.s[j].t}; ED_ID=id; const t=stOf(x), s=(STATUS[DSNAME]||{})[id]||{};
   document.getElementById("ed-t").textContent=x.t;
   document.getElementById("ed-s").textContent=`${({"규완":"규완","MY":"말레이시아","PH":"필리핀"})[DSNAME]||DSNAME} · 마감 ${fmt(endOf(x))}${s.at?` · 마지막 변경 ${new Date(s.at).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}${s.who?" "+s.who:""}${s.src==="chat"?" (채팅 반영)":""}`:""}`;
   const cur=pre.state||s.state||"todo"; ED.querySelectorAll("input[name=st]").forEach(r=>r.checked=r.value===cur);
@@ -984,21 +1015,21 @@ document.getElementById("ed-ok").addEventListener("click",async()=>{
 document.addEventListener("click",e=>{const b=e.target.closest("[data-edit]"); if(b){e.preventDefault();e.stopPropagation();openEd(b.dataset.edit);}},true);
 let PENDING=null;
 async function postStatus(body){ const r=await fetch(API,{method:"POST",body:JSON.stringify(body)}); return r.json(); }
-async function quickSave(id,state,pct){
-  const s=(STATUS[DSNAME]||{})[id]||{}, pin=lsGet("mbm-pin"), who=lsGet("mbm-who");
-  if(state==="doing"&&pct==null) pct=s.state==="doing"&&s.pct!=null?+s.pct:10;
-  const body={pin,view:DSNAME,id,state,pct:state==="doing"?pct:(state==="done"?100:0),date:state==="done"?(s.state==="done"&&s.done?s.done:iso(TODAY)):"",who,note:s.note||""};
+async function quickSave(id,pct){
+  const r=recOf(id)||{}, pin=lsGet("mbm-pin"), who=lsGet("mbm-who");
+  const state=pct>=100?"done":pct>0?"doing":"todo";
+  const body={pin,view:DSNAME,id,state,pct,date:state==="done"?(r.done||iso(TODAY)):"",who,note:r.note||""};
   if(!API) return;
-  if(!pin||!who){ PENDING=body; openEd(id,{state,pct:body.pct,first:true}); return; }
-  const prev=s; REMOTE[DSNAME]=REMOTE[DSNAME]||{};
-  REMOTE[DSNAME][id]={state,pct:body.pct,done:body.date||null,who,note:body.note,at:Date.now(),src:"sheet"}; mergeStatus(); SCHED_D=null; render();
+  if(!pin||!who){ PENDING=body; openEd(id,{state,pct,first:true}); return; }
+  REMOTE[DSNAME]=REMOTE[DSNAME]||{};
+  REMOTE[DSNAME][id]={state,pct,done:body.date||null,who,note:body.note,at:Date.now(),src:"sheet"}; mergeStatus(); SCHED_D=null; render();
   try{ const j=await postStatus(body);
-    if(!j.ok){ if(j.error==="PIN"){ lsSet("mbm-pin",""); PENDING=body; openEd(id,{state,pct:body.pct,first:true,msg:"팀 PIN이 맞지 않습니다. 다시 입력해 주세요."}); } else alert("저장하지 못했습니다: "+(j.error||"")); }
+    if(!j.ok){ if(j.error==="PIN"){ lsSet("mbm-pin",""); PENDING=body; openEd(id,{state,pct,first:true,msg:"팀 PIN이 맞지 않습니다. 다시 입력해 주세요."}); } else alert("저장하지 못했습니다: "+(j.error||"")); }
     loadRemote();
   }catch(e){ alert("저장하지 못했습니다. 인터넷 연결을 확인해 주세요."); loadRemote(); }
 }
-document.addEventListener("click",e=>{const b=e.target.closest("[data-set]"); if(!b)return; e.preventDefault(); quickSave(b.dataset.id,b.dataset.set);},true);
-document.addEventListener("change",e=>{const sel=e.target.closest(".stpct"); if(!sel)return; quickSave(sel.dataset.id,"doing",+sel.value);});
+document.addEventListener("input",e=>{const el=e.target.closest("input.pr"); if(!el)return; el.style.setProperty("--v",el.value+"%"); const v=el.parentElement.querySelector(".prv"); if(v) v.textContent=el.value+"%";});
+document.addEventListener("change",e=>{const el=e.target.closest("input.pr"); if(!el)return; quickSave(el.dataset.id,+el.value);});
 loadRemote(); setInterval(loadRemote,60000);
 
 </script>
