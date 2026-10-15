@@ -407,6 +407,7 @@ dialog.ed::backdrop{background:rgba(20,30,40,.35)}
 .ed input[type=range]{flex:1}.ed input[type=text],.ed input[type=date],.ed input[type=password],.ed select{flex:1;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:inherit;min-width:0}
 .ed .btns{display:flex;justify-content:flex-end;gap:8px}.ed .btns button{font:inherit;font-size:13px;padding:7px 14px;border-radius:7px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .ed .btns .ok{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+#ed .seg,#ed #ed-pr{display:none!important}
 .ed .msg{font-size:12px;color:#B23A2E;min-height:16px}
 tr.p.st-done .t{color:var(--muted)}
 tr.p.st-late td{box-shadow:inset 0 0 0 9999px rgba(178,58,46,.04)}
@@ -414,6 +415,10 @@ tr.p.st-late td{box-shadow:inset 0 0 0 9999px rgba(178,58,46,.04)}
 .chip.c-late{color:#B23A2E;border-color:#F2C2BB;background:#FCE6E3;font-weight:600}
 .bar.b-done{opacity:.55}
 .bar.b-late{outline:1.5px solid #B23A2E;outline-offset:-1.5px}
+.me{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 16px}
+.me select,.me input{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:inherit;width:auto}
+.me input{width:110px}.me-m{font-size:12px;color:var(--muted)}.me-m.err{color:#B23A2E;font-weight:600}
+.me.flash{box-shadow:0 0 0 3px #F2C2BB}
 .prog{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
 .pg-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .pg-sum b{font-size:13.5px;margin-right:4px}
@@ -566,6 +571,10 @@ tr.p.st-late td{box-shadow:inset 0 0 0 9999px rgba(178,58,46,.04)}
   </section>
 
 
+  <div class="me plan-only" id="me"><b>진행률 바꾸는 사람</b>
+    <select id="me-w" aria-label="이름"><option value="">이름 선택</option><option>규완</option><option>승완</option><option>민영</option><option>승규</option><option>현택</option><option>기타</option></select>
+    <input type="password" id="me-pin" inputmode="numeric" autocomplete="off" placeholder="팀 PIN" aria-label="팀 PIN">
+    <span id="me-m" class="me-m">한 번 넣으면 이 브라우저에 기억됩니다. 아래 막대를 끌면 바로 저장됩니다.</span></div>
   <div class="prog plan-only" id="prog"></div>
   <div class="tl plan-only" id="tl"></div>
   <div class="cal plan-only" id="cal" hidden></div>
@@ -971,9 +980,7 @@ document.body.insertAdjacentHTML("beforeend",`<dialog class="ed" id="ed"><form m
   <div class="seg"><label><input type="radio" name="st" value="todo">착수 전</label><label><input type="radio" name="st" value="doing">진행 중</label><label><input type="radio" name="st" value="done">완료</label></div>
   <div class="row" id="ed-pr"><span>진행률</span><input type="range" min="0" max="100" step="10" id="ed-p"><b id="ed-pv" style="width:40px;text-align:right">0%</b></div>
   <div class="row" id="ed-dr"><span>완료일</span><input type="date" id="ed-d"></div>
-  <div class="row"><span>바꾼 사람</span><select id="ed-w"><option>규완</option><option>승완</option><option>민영</option><option>승규</option><option>현택</option><option>기타</option></select></div>
   <div class="row"><span>메모</span><input type="text" id="ed-n" maxlength="80" placeholder="선택 · 예: 견적 3곳 받음"></div>
-  <div class="row" id="ed-pinr"><span>팀 PIN</span><input type="password" id="ed-pin" inputmode="numeric" autocomplete="off"></div>
   <div class="msg" id="ed-m"></div>
   <div class="btns"><button type="button" id="ed-c">취소</button><button type="button" class="ok" id="ed-ok">저장</button></div>
 </form></dialog>`);
@@ -984,14 +991,12 @@ function edSync(){ const st=(ED.querySelector("input[name=st]:checked")||{}).val
   document.getElementById("ed-pv").textContent=document.getElementById("ed-p").value+"%"; }
 function openEd(id,pre){ pre=pre||{};
   const pid=id.split("-")[0], j=id.includes("-")?+id.split("-")[1]-1:null; const px=BYID[pid]; if(!px) return; const x=j==null?px:{...px,t:px.s[j].t}; ED_ID=id; const t=stOf(x), s=(STATUS[DSNAME]||{})[id]||{};
-  document.getElementById("ed-t").textContent=x.t;
+  document.getElementById("ed-t").textContent="메모 · "+x.t;
   document.getElementById("ed-s").textContent=`${({"규완":"규완","MY":"말레이시아","PH":"필리핀"})[DSNAME]||DSNAME} · 마감 ${fmt(endOf(x))}${s.at?` · 마지막 변경 ${new Date(s.at).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}${s.who?" "+s.who:""}${s.src==="chat"?" (채팅 반영)":""}`:""}`;
   const cur=pre.state||s.state||"todo"; ED.querySelectorAll("input[name=st]").forEach(r=>r.checked=r.value===cur);
   document.getElementById("ed-p").value=pre.pct!=null?pre.pct:(s.pct||(cur==="doing"?10:0));
   document.getElementById("ed-d").value=s.done||iso(TODAY);
   document.getElementById("ed-n").value=s.note||"";
-  document.getElementById("ed-w").value=lsGet("mbm-who")||"규완";
-  document.getElementById("ed-pin").value=lsGet("mbm-pin");
   document.getElementById("ed-m").textContent=pre.msg||(API?(pre.first?"처음 한 번만 이름과 팀 PIN을 넣어 주세요. 다음부터는 버튼만 누르면 바로 저장됩니다.":""):"아직 공용 저장소가 연결되지 않아 저장할 수 없습니다.");
   document.getElementById("ed-m").style.color=pre.first&&!pre.msg?"var(--muted)":"";
   document.getElementById("ed-ok").disabled=!API;
@@ -1001,13 +1006,14 @@ ED.addEventListener("input",edSync);
 document.getElementById("ed-c").addEventListener("click",()=>ED.close());
 document.getElementById("ed-ok").addEventListener("click",async()=>{
   const st=(ED.querySelector("input[name=st]:checked")||{}).value||"todo";
-  const body={pin:document.getElementById("ed-pin").value.trim(), view:DSNAME, id:ED_ID, state:st,
+  const body={pin:document.getElementById("me-pin").value.trim(), view:DSNAME, id:ED_ID, state:st,
     pct:st==="doing"?+document.getElementById("ed-p").value:(st==="done"?100:0),
-    date:st==="done"?document.getElementById("ed-d").value:"", who:document.getElementById("ed-w").value, note:document.getElementById("ed-n").value.trim()};
+    date:st==="done"?document.getElementById("ed-d").value:"", who:document.getElementById("me-w").value, note:document.getElementById("ed-n").value.trim()};
+  if(!body.pin||!body.who){ ED.close(); meWarn("먼저 위에 이름과 팀 PIN을 넣어 주세요."); return; }
   const m=document.getElementById("ed-m"); m.style.color=""; m.textContent="저장 중…";
   try{ const r=await fetch(API,{method:"POST",body:JSON.stringify(body)}); const j=await r.json();
     if(!j.ok){ m.textContent=j.error==="PIN"?"팀 PIN이 맞지 않습니다.":"저장하지 못했습니다: "+(j.error||""); return; }
-    lsSet("mbm-pin",body.pin); lsSet("mbm-who",body.who);
+    lsSet("mbm-pin",body.pin); lsSet("mbm-who",body.who); meOk(`${body.who} · 저장됨`);
     REMOTE[DSNAME]=REMOTE[DSNAME]||{}; REMOTE[DSNAME][ED_ID]={state:body.state,pct:body.pct,done:body.date||null,who:body.who,note:body.note,at:Date.now(),src:"sheet"};
     mergeStatus(); SCHED_D=null; render(); ED.close(); loadRemote();
   }catch(e){ m.textContent="저장하지 못했습니다. 인터넷 연결을 확인해 주세요."; }
@@ -1016,18 +1022,26 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-edit]"); i
 let PENDING=null;
 async function postStatus(body){ const r=await fetch(API,{method:"POST",body:JSON.stringify(body)}); return r.json(); }
 async function quickSave(id,pct){
-  const r=recOf(id)||{}, pin=lsGet("mbm-pin"), who=lsGet("mbm-who");
+  const r=recOf(id)||{}, pin=document.getElementById("me-pin").value.trim(), who=document.getElementById("me-w").value;
   const state=pct>=100?"done":pct>0?"doing":"todo";
   const body={pin,view:DSNAME,id,state,pct,date:state==="done"?(r.done||iso(TODAY)):"",who,note:r.note||""};
   if(!API) return;
-  if(!pin||!who){ PENDING=body; openEd(id,{state,pct,first:true}); return; }
+  if(!pin||!who){ meWarn("먼저 위에 이름과 팀 PIN을 넣어 주세요."); render(); return; }
+  lsSet("mbm-pin",pin); lsSet("mbm-who",who);
   REMOTE[DSNAME]=REMOTE[DSNAME]||{};
   REMOTE[DSNAME][id]={state,pct,done:body.date||null,who,note:body.note,at:Date.now(),src:"sheet"}; mergeStatus(); SCHED_D=null; render();
   try{ const j=await postStatus(body);
-    if(!j.ok){ if(j.error==="PIN"){ lsSet("mbm-pin",""); PENDING=body; openEd(id,{state,pct,first:true,msg:"팀 PIN이 맞지 않습니다. 다시 입력해 주세요."}); } else alert("저장하지 못했습니다: "+(j.error||"")); }
+    if(!j.ok){ if(j.error==="PIN"){ lsSet("mbm-pin",""); document.getElementById("me-pin").value=""; delete REMOTE[DSNAME][id]; mergeStatus(); SCHED_D=null; render(); meWarn("팀 PIN이 맞지 않아 저장되지 않았습니다. PIN을 다시 넣어 주세요."); } else alert("저장하지 못했습니다: "+(j.error||"")); }
+    else meOk(`${who} · 저장됨`);
     loadRemote();
   }catch(e){ alert("저장하지 못했습니다. 인터넷 연결을 확인해 주세요."); loadRemote(); }
 }
+function meWarn(t){ const m=document.getElementById("me-m"), b=document.getElementById("me"); m.textContent=t; m.className="me-m err"; b.classList.add("flash"); b.scrollIntoView({block:"center",behavior:"smooth"}); setTimeout(()=>b.classList.remove("flash"),1600); }
+function meOk(t){ const m=document.getElementById("me-m"); m.textContent=t; m.className="me-m"; }
+document.getElementById("me-w").value=lsGet("mbm-who"); document.getElementById("me-pin").value=lsGet("mbm-pin");
+document.getElementById("me-w").addEventListener("change",e=>lsSet("mbm-who",e.target.value));
+document.getElementById("me-pin").addEventListener("change",e=>lsSet("mbm-pin",e.target.value.trim()));
+if(!API) meOk("공용 저장소가 연결되지 않아 지금은 저장할 수 없습니다.");
 document.addEventListener("input",e=>{const el=e.target.closest("input.pr"); if(!el)return; el.style.setProperty("--v",el.value+"%"); const v=el.parentElement.querySelector(".prv"); if(v) v.textContent=el.value+"%";});
 document.addEventListener("change",e=>{const el=e.target.closest("input.pr"); if(!el)return; quickSave(el.dataset.id,+el.value);});
 loadRemote(); setInterval(loadRemote,60000);
